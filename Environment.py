@@ -152,5 +152,13 @@ class GridWorld:
 
 		return self.adjMatrix
 
+	def getNextStateAndReward(self, action):
+		''' One step forward model: return the next state and reward given an
+		observation. '''
+		nextX, nextY = self._getNextState(action)
+
+
 	def defineRewardFunction(self, vector):
+		''' Load vector that will define the reward function: the dot product
+		    between the loaded vector and the feature representation.'''
 		self.rewardFunction = vector

@@ -20,7 +20,7 @@ class Learning:
 		delta = 0.0
 		for s in xrange(self.numStates):
 			v = V[s]
-			V[s] = 0 # I need to fix it.
+			V[s] = 0 # \sum_{s', r} p(s', r | s, \pi(s)) [r + \gamma V(s')]
 			delta = max(delta, math.fabs(v - V[s]))
 
 		return delta
@@ -30,7 +30,7 @@ class Learning:
 		policy_stable = True
 		for s in xrange(self.numStates):
 			old_action = pi[s]
-			pi[s] = 0 # I need to fix it.
+			pi[s] = 0 #  \sum_{s', r} p(s', r | s, \pi(s)) [r + \gamma V(s')]
 			if old_action != pi[s]:
 				policy_stable = False
 
