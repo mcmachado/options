@@ -23,6 +23,7 @@ class GridWorld:
 	numStates = -1
 	matrixMDP = None
 	adjMatrix = None
+	rewardFunction = None
 
 	currX = -1
 	currY = -1
@@ -143,7 +144,6 @@ class GridWorld:
 					if self.matrixMDP[i][j - 1] != -1:
 						self.adjMatrix[self.idxMatrix[i][j]][self.idxMatrix[i][j - 1]] = 1
 
-
 	def getAdjacencyMatrix(self):
 		''' If I never did it before, I will fill the adjacency matrix.
 		Otherwise I'll just return the one that was filled before.'''
@@ -151,3 +151,6 @@ class GridWorld:
 			self._fillAdjacencyMatrix()
 
 		return self.adjMatrix
+
+	def defineRewardFunction(self, vector):
+		self.rewardFunction = vector
