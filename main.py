@@ -1,19 +1,24 @@
+'''
+Main file. From here I call all the relevant functions that allow me to test my
+algorithm, including obtaining the graph Laplacian, learning an optimal policy
+given a reward function, and plotting options and basis functions.
+
+Author: Marlos C. Machado
+'''
 import sys
 import numpy as np
-import matplotlib
 import argparse
 
-import matplotlib.pylab as plt
-import mpl_toolkits.mplot3d.axes3d as axes3d
-
-from matplotlib import cm
-
+from Drawing import Plotter
 from Utils import Utils
 from Environment import GridWorld
 
-parser = argparse.ArgumentParser(description='Obtain proto-value functions, options, graphs, etc.')
-parser.add_argument('-i', '--input', type=str, default='mdps/fig1.mdp', help='File containing the MDP definition.')
-parser.add_argument('-o', '--output', type=str, default='graphs/fig1_', help='Prefix that will be used to generate all outputs.')
+parser = argparse.ArgumentParser(
+	description='Obtain proto-value functions, options, graphs, etc.')
+parser.add_argument('-i', '--input', type=str, default='mdps/fig1.mdp',
+	help='File containing the MDP definition.')
+parser.add_argument('-o', '--output', type=str, default='graphs/fig1_',
+	help='Prefix that will be used to generate all outputs.')
 
 args = parser.parse_args()
 
@@ -51,17 +56,5 @@ eigenvalues = eigenvalues[idx]
 eigenvectors = eigenvectors[:,idx]
 
 # Plotting all the basis
-for i in xrange(len(eigenvalues)):
-	print eigenvalues[i]
-	fig, ax = plt.subplots(subplot_kw=dict(projection='3d'))
-	X, Y = np.meshgrid(np.arange(numRows), np.arange(numCols))
-	Z = eigenvectors[:,i].reshape(numRows,numCols)
-	my_col = cm.jet(np.random.rand(Z.shape[0],Z.shape[1]))
-
-	ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=plt.get_cmap('jet'))
-	plt.savefig(outputPath + 'eig_' + str(i) + '.png')
-	plt.close()
-
-
-plt.plot(eigenvalues, 'o')
-plt.savefig(outputPath + 'eigenvalues.png')
+plot = Plotter(outputPath, numRows, numCols)
+plot.plotBasisFunctions(eigenvalues, eigenvectors)
