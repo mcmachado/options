@@ -121,8 +121,8 @@ class GridWorld:
 
 	def _fillAdjacencyMatrix(self):
 		''' This is not efficient, but for small MDPs it should be fast.'''
-		self.adjMatrix = np.zeros((self.numStates, self.numStates))
-		self.idxMatrix = np.zeros((self.numRows, self.numCols))
+		self.adjMatrix = np.zeros((self.numStates, self.numStates), dtype = np.int)
+		self.idxMatrix = np.zeros((self.numRows, self.numCols), dtype = np.int)
 
 		'''I'll try for all states not in the borders (they have to be walls)
 		all 4 possible directions. If the next state is also available we add
