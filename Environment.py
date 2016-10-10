@@ -29,6 +29,8 @@ class GridWorld:
 	currY = -1
 	startX = -1
 	startY = -1
+	goalX = -1
+	goalY = -1
 
 	def __init__(self, path=None, strin=None):
 		'''Return a GridWorld object that instantiates the MDP defined in a file
@@ -76,26 +78,30 @@ class GridWorld:
 				elif data[i+1][j] == 'S':
 					self.startX = i
 					self.startY = j
+				elif data[i+1][j] == 'G':
+					self.goalX = i
+					self.goalY = j
 
 	def _getNextState(self, action):
-		if action == 'up':
-			return self.currX - 1, self.currY
-		elif action == 'right':
-			return self.currX, self.currY + 1
-		elif action == 'down':
-			return self.currX + 1, self.currY
-		elif action == 'left':
-			return self.currX, self.currY - 1
+		''' This function returns what is going to be the next state (x,y)
+		    given an action. It does not update the next state, it is a one-step
+		    forward model. '''
+		nextX = self.currX
+		nextY = self.currY
 
-	def act(self, action):
-		''' At first there are four possible actions: up, down, left and right.
-		If the agent tries to go to a -1 state it will stay on the same coord.
-		I decided to not implement any stochasticity for now.'''
-
-		# Basically I get what will be the next state and before really making
-		# it my current state I verify everything is sound.
-		# TODO: Implement rewards
-		nextX, nextY = self._getNextState(action)
+		if action == 'up' and self.currX > 0:
+			nextX = self.currX - 1
+			nextY = self.currY
+		elif action == 'right' and self.currY < self.numCols - 1:
+			nextX = self.currX
+			nextY = self.currY + 1
+		elif action == 'down' and self.currX < self.numRows - 1:
+			nextX = self.currX + 1
+			nextY = self.currY
+		elif action == 'left' and self.currY > 0:
+			nextX = self.currX
+			nextY = self.currY - 1
+		
 		if nextX < 0 or nextY < 0:
 			print 'You were supposed to have hit a wall before!' 
 			print 'There is something wrong with your MDP definition.'
@@ -109,6 +115,39 @@ class GridWorld:
 		if self.matrixMDP[nextX][nextY] != -1:
 			self.currX = nextX
 			self.currY = nextY
+
+		return nextX, nextY
+
+	def getCurrentState(self):
+		currStateIdx = self.currY + self.currX * self.numCols
+		return currStateIdx
+
+	def _getNextReward(self, currX, currY, action, nextX, nextY):
+		# I first look at the state I am in
+		currStateIdx = currX + currY * self.numCols
+		# Now I can look at the next state
+		nextStateIdx = nextY + nextX * self.numCols
+
+		# Now I can finally compute the reward
+		reward = self.rewardFunction[nextStateIdx] \
+			- self.rewardFunction[currStateIdx]
+
+		return reward
+
+	def act(self, action):
+		''' At first there are four possible actions: up, down, left and right.
+		If the agent tries to go to a -1 state it will stay on the same coord.
+		I decided to not implement any stochasticity for now.'''
+
+		# Basically I get what will be the next state and before really making
+		# it my current state I verify everything is sound.
+		nextX, nextY = self._getNextState(action)
+		reward = self._getNextReward(
+			self.currX, self.currY, action, nextX, nextY)
+		self.currX = nextX
+		self.currY = nextY
+
+		return reward
 
 	def getGridDimensions(self):
 		return self.numRows, self.numCols
@@ -152,11 +191,30 @@ class GridWorld:
 
 		return self.adjMatrix
 
-	def getNextStateAndReward(self, action):
+	def getNextStateAndReward(self, currState, action):
 		''' One step forward model: return the next state and reward given an
 		observation. '''
-		nextX, nextY = self._getNextState(action)
 
+		# First I'll save the original state the agent is on
+		currStateIdx = self.getCurrentState()
+		# Now I can reset the agent to the state I was told to
+		tempX = self.currX
+		tempY = self.currY
+		self.currY = currState % self.numCols
+		self.currX = (currState - self.currY)/self.numCols
+
+		# Now I can ask what will happen next in this new state
+		nextX, nextY = self._getNextState(action)
+		reward = self._getNextReward(self.currX, self.currY, action, nextX, nextY)
+
+
+		# We need to restore the previous configuration:
+		self.currX = tempX
+		self.currY = tempY
+
+		nextStateIdx = nextY + nextX * self.numCols
+
+		return nextStateIdx, reward
 
 	def defineRewardFunction(self, vector):
 		''' Load vector that will define the reward function: the dot product

@@ -9,29 +9,49 @@ import numpy as np
 
 class Learning:
 
+	V = None
+	pi = None
+	gamma = 0.9
 	numStates = 0
+	actionSet = None
+	environment = None
 
-	def __init__(self, nStates):
+	def __init__(self, gamma, env):
 		'''Initialize variables that are useful everywhere.'''
-		self.numStates = nStates
+		self.gamma = gamma
+		self.environment = env
+		self.numStates = env.getNumStates()
+
+		self.V = np.zeros(self.numStates)
+		self.pi = np.zeros(self.numStates, dtype = np.int)
+		self.actionSet = env.getActionSet()
 
 	def _evalPolicy(self):
 		''' Policy evaluation step.'''
 		delta = 0.0
 		for s in xrange(self.numStates):
-			v = V[s]
-			V[s] = 0 # \sum_{s', r} p(s', r | s, \pi(s)) [r + \gamma V(s')]
-			delta = max(delta, math.fabs(v - V[s]))
+			v = self.V[s]
+			nextS, nextR = self.environment.getNextStateAndReward(
+				s, self.actionSet[self.pi[s]])
+			self.V[s] = nextR + self.gamma * self.V[nextS]
+			delta = max(delta, math.fabs(v - self.V[s]))
 
 		return delta
 
-	def _improvePolicy(self, pi):
+	def _improvePolicy(self):
 		''' Policy improvement step. '''
 		policy_stable = True
 		for s in xrange(self.numStates):
-			old_action = pi[s]
-			pi[s] = 0 #  \sum_{s', r} p(s', r | s, \pi(s)) [r + \gamma V(s')]
-			if old_action != pi[s]:
+			old_action = self.pi[s]
+			tempV = [0.0, 0.0, 0.0, 0.0]
+			# I first get all value-function estimates
+			for i in xrange(len(self.actionSet)):
+				nextS, nextR = self.environment.getNextStateAndReward(
+					s, self.actionSet[i])
+				tempV[i] = nextR + self.gamma * self.V[nextS]
+			# Now I take the argmax
+			self.pi[s] = np.argmax(tempV)
+			if old_action != self.pi[s]:
 				policy_stable = False
 
 		return policy_stable
@@ -40,18 +60,17 @@ class Learning:
 		''' Implementation of Policy Iteration, as in the policy iteration
 		    pseudo-code presented in Sutton and Barto (2016).'''
 
-		# Initialization
-		V = np.zeros(numStates)
-		pi = np.zeros(numStates)
+		# Initialization is done in the constructor
 		policy_stable = False
 
 		while not policy_stable:
 			# Policy evaluation
 			delta = self._evalPolicy()
-			while (delta < theta):
+			while (theta < delta):
+				print delta
 				delta = self._evalPolicy()
 
 			# Policy improvement
-			policy_stable = self._improvePolicy(pi)
+			policy_stable = self._improvePolicy()
 
-		return V, pi
+		return self.V, self.pi

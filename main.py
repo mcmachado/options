@@ -9,6 +9,7 @@ import sys
 import numpy as np
 import argparse
 
+from Learning import Learning
 from Drawing import Plotter
 from Utils import Utils
 from Environment import GridWorld
@@ -59,9 +60,18 @@ if __name__ == "__main__":
 
 	# Plotting all the basis
 	plot = Plotter(outputPath, numRows, numCols)
-	plot.plotBasisFunctions(eigenvalues, eigenvectors)
+	#plot.plotBasisFunctions(eigenvalues, eigenvectors)
 
 	# Now I will define a reward function and solve the MDP for it
 	guard = len(eigenvectors)
-	for i in xrange(guard):
-		env.defineRewardFunction(eigenvectors[guard - i - 1])
+	#for i in xrange(guard):
+	i = 1
+	polIter = Learning(0.9, env)
+#	env.defineRewardFunction(eigenvectors[:,guard - i - 1])
+	rew = np.zeros((numStates, 1), dtype = np.int)
+	rew[4 + 1 * numCols] = 1
+	env.defineRewardFunction(rew)
+	V, pi = polIter.solvePolicyIteration()
+
+	print V
+	plot.plotValueFunction(V)
