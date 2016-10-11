@@ -117,10 +117,9 @@ class GridWorld:
 			sys.exit()
 
 		if self.matrixMDP[nextX][nextY] != -1:
-			self.currX = nextX
-			self.currY = nextY
-
-		return nextX, nextY
+			return nextX, nextY
+		else:
+			return self.currX, self.currY
 
 	def getCurrentState(self):
 		currStateIdx = self.currY + self.currX * self.numCols

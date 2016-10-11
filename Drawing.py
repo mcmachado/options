@@ -63,7 +63,6 @@ class Plotter:
 			j = idx % self.numCols
 			i = (idx - j)/self.numCols
 
-			idx = j + i * self.numCols
 			dx = 0
 			dy = 0
 			if policy[idx] == 0: # up
@@ -83,7 +82,7 @@ class Plotter:
 			else:
 				plt.gca().add_patch(
 					patches.Rectangle(
-					(j, i),   # (x,y)
+					(j, i),       # (x,y)
 					1.0,          # width
 					1.0,          # height
 					facecolor = "gray"
