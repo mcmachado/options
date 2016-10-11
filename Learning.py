@@ -67,7 +67,6 @@ class Learning:
 			# Policy evaluation
 			delta = self._evalPolicy()
 			while (theta < delta):
-				print delta
 				delta = self._evalPolicy()
 
 			# Policy improvement

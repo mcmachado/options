@@ -60,18 +60,14 @@ if __name__ == "__main__":
 
 	# Plotting all the basis
 	plot = Plotter(outputPath, numRows, numCols)
-	#plot.plotBasisFunctions(eigenvalues, eigenvectors)
+	plot.plotBasisFunctions(eigenvalues, eigenvectors)
 
 	# Now I will define a reward function and solve the MDP for it
 	guard = len(eigenvectors)
-	#for i in xrange(guard):
-	i = 1
-	polIter = Learning(0.9, env)
-#	env.defineRewardFunction(eigenvectors[:,guard - i - 1])
-	rew = np.zeros((numStates, 1), dtype = np.int)
-	rew[4 + 1 * numCols] = 1
-	env.defineRewardFunction(rew)
-	V, pi = polIter.solvePolicyIteration()
-
-	print V
-	plot.plotValueFunction(V)
+	for i in xrange(guard):
+		idx = guard - i - 1
+		print 'Solving for eigenvector #' + str(idx)
+		polIter = Learning(0.9, env)
+		env.defineRewardFunction(eigenvectors[:,idx])
+		V, pi = polIter.solvePolicyIteration()
+		plot.plotValueFunction(V, '_' + str(idx) + '_')

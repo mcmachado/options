@@ -40,7 +40,7 @@ class Plotter:
 		plt.plot(eigenvalues, 'o')
 		plt.savefig(self.outputPath + 'eigenvalues.png')
 
-	def plotValueFunction(self, valueFunction):
+	def plotValueFunction(self, valueFunction, prefix):
 		'''3d plot of a value function.''' 
 		fig, ax = plt.subplots(subplot_kw = dict(projection = '3d'))
 		X, Y = np.meshgrid(np.arange(self.numRows), np.arange(self.numCols))
@@ -49,6 +49,5 @@ class Plotter:
 
 		ax.plot_surface(X, Y, Z, rstride = 1, cstride = 1,
 			cmap = plt.get_cmap('jet'))
-		#plt.savefig(self.outputPath + 'value_function.png')
-		plt.show()
+		plt.savefig(self.outputPath + prefix + 'value_function.png')
 		plt.close()
