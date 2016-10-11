@@ -74,8 +74,9 @@ class Plotter:
 				dy = -0.35
 			elif policy[idx] == 3: #left
 				dx = -0.35
-			elif policy[idx] == 4: # termination
-				plt.Circle((j + 0.5, i + 0.5), 0.1, color='k')
+			elif self.matrixMDP[i][j] != -1 and policy[idx] == 4: # termination
+				circle = plt.Circle((j + 0.5, i + 0.5), 0.025, color='k')
+				plt.gca().add_artist(circle)
 
 			if self.matrixMDP[i][j] != -1:
 				plt.arrow(j + 0.5, i + 0.5, dx, dy, head_width=0.05, head_length=0.05, fc='k', ec='k')
