@@ -59,32 +59,35 @@ class Plotter:
 
 	def plotPolicy(self, policy, prefix):
 		plt.clf()
-		for i in xrange(self.numRows):
-			for j in xrange(self.numCols):
-				dx = 0
-				dy = 0
-				if policy[i] == 0: # up
-					dy = 0.35
-				elif policy[i] == 1: #right
-					dx = 0.35
-				elif policy[i] == 2: #down
-					dy = -0.35
-				elif policy[i] == 3: #left
-					dx = -0.35
-				elif policy[i] == -1: # termination
-					plt.Circle((j + 0.5, i + 0.5), 0.1, color='k')
+		for idx in xrange(len(policy)):
+			j = idx % self.numCols
+			i = (idx - j)/self.numCols
 
-				if self.matrixMDP[i][j] != -1:
-					plt.arrow(j + 0.5, i + 0.5, dx, dy, head_width=0.05, head_length=0.05, fc='k', ec='k')
-				else:
-					plt.gca().add_patch(
-						patches.Rectangle(
-						(j, i),   # (x,y)
-						1.0,          # width
-						1.0,          # height
-						facecolor = "gray"
-						)
+			idx = j + i * self.numCols
+			dx = 0
+			dy = 0
+			if policy[idx] == 0: # up
+				dy = 0.35
+			elif policy[idx] == 1: #right
+				dx = 0.35
+			elif policy[idx] == 2: #down
+				dy = -0.35
+			elif policy[idx] == 3: #left
+				dx = -0.35
+			elif policy[idx] == 4: # termination
+				plt.Circle((j + 0.5, i + 0.5), 0.1, color='k')
+
+			if self.matrixMDP[i][j] != -1:
+				plt.arrow(j + 0.5, i + 0.5, dx, dy, head_width=0.05, head_length=0.05, fc='k', ec='k')
+			else:
+				plt.gca().add_patch(
+					patches.Rectangle(
+					(j, i),   # (x,y)
+					1.0,          # width
+					1.0,          # height
+					facecolor = "gray"
 					)
+				)
 
 		plt.xlim([0, self.numCols])
 		plt.ylim([0, self.numRows])

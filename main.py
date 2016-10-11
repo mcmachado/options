@@ -70,8 +70,6 @@ if __name__ == "__main__":
 		polIter = Learning(0.9, env)
 		env.defineRewardFunction(eigenvectors[:,idx])
 		V, pi = polIter.solvePolicyIteration()
-		for i in xrange(len(V)):
-			if V[i] < 0:
-				pi[i] = -1
+
 		plot.plotValueFunction(V[0:numStates], str(idx) + '_')
-		plot.plotPolicy(pi, str(idx) + '_')
+		plot.plotPolicy(pi[0:numStates], str(idx) + '_')
