@@ -89,18 +89,22 @@ class GridWorld:
 		nextX = self.currX
 		nextY = self.currY
 
-		if action == 'up' and self.currX > 0:
-			nextX = self.currX - 1
-			nextY = self.currY
-		elif action == 'right' and self.currY < self.numCols - 1:
-			nextX = self.currX
-			nextY = self.currY + 1
-		elif action == 'down' and self.currX < self.numRows - 1:
-			nextX = self.currX + 1
-			nextY = self.currY
-		elif action == 'left' and self.currY > 0:
-			nextX = self.currX
-			nextY = self.currY - 1
+		if action == 'terminate':
+			return -1, -1 # absorbing state
+
+		if self.matrixMDP[self.currX][self.currY] != -1:
+			if action == 'up' and self.currX > 0:
+				nextX = self.currX - 1
+				nextY = self.currY
+			elif action == 'right' and self.currY < self.numCols - 1:
+				nextX = self.currX
+				nextY = self.currY + 1
+			elif action == 'down' and self.currX < self.numRows - 1:
+				nextX = self.currX + 1
+				nextY = self.currY
+			elif action == 'left' and self.currY > 0:
+				nextX = self.currX
+				nextY = self.currY - 1
 		
 		if nextX < 0 or nextY < 0:
 			print 'You were supposed to have hit a wall before!' 
@@ -195,6 +199,10 @@ class GridWorld:
 		''' One step forward model: return the next state and reward given an
 		observation. '''
 
+		# In case it is the absorbing state encoding end of an episode
+		if currState == self.numStates:
+			return currState, 0
+
 		# First I'll save the original state the agent is on
 		currStateIdx = self.getCurrentState()
 		# Now I can reset the agent to the state I was told to
@@ -204,15 +212,18 @@ class GridWorld:
 		self.currX = (currState - self.currY)/self.numCols
 
 		# Now I can ask what will happen next in this new state
+		nextStateIdx = -1
 		nextX, nextY = self._getNextState(action)
-		reward = self._getNextReward(self.currX, self.currY, action, nextX, nextY)
-
+		if nextX != -1 and nextY != -1: # If it is not the absorbing state:
+			reward = self._getNextReward(self.currX, self.currY, action, nextX, nextY)
+			nextStateIdx = nextY + nextX * self.numCols
+		else:
+			reward = 0
+			nextStateIdx = self.numStates
 
 		# We need to restore the previous configuration:
 		self.currX = tempX
 		self.currY = tempY
-
-		nextStateIdx = nextY + nextX * self.numCols
 
 		return nextStateIdx, reward
 

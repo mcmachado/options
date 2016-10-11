@@ -20,11 +20,11 @@ class Learning:
 		'''Initialize variables that are useful everywhere.'''
 		self.gamma = gamma
 		self.environment = env
-		self.numStates = env.getNumStates()
+		self.numStates = env.getNumStates() + 1
 
-		self.V = np.zeros(self.numStates)
-		self.pi = np.zeros(self.numStates, dtype = np.int)
-		self.actionSet = env.getActionSet()
+		self.V = np.zeros(self.numStates + 1)
+		self.pi = np.zeros(self.numStates + 1, dtype = np.int)
+		self.actionSet = np.append(env.getActionSet(), ['terminate'])
 
 	def _evalPolicy(self):
 		''' Policy evaluation step.'''
@@ -43,7 +43,7 @@ class Learning:
 		policy_stable = True
 		for s in xrange(self.numStates):
 			old_action = self.pi[s]
-			tempV = [0.0, 0.0, 0.0, 0.0]
+			tempV = [0.0] * len(self.actionSet)
 			# I first get all value-function estimates
 			for i in xrange(len(self.actionSet)):
 				nextS, nextR = self.environment.getNextStateAndReward(

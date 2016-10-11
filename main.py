@@ -73,5 +73,5 @@ if __name__ == "__main__":
 		for i in xrange(len(V)):
 			if V[i] < 0:
 				pi[i] = -1
-		plot.plotValueFunction(V, str(idx) + '_')
+		plot.plotValueFunction(V[0:numStates], str(idx) + '_')
 		plot.plotPolicy(pi, str(idx) + '_')
