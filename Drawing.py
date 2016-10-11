@@ -6,20 +6,24 @@ Author: Marlos C. Machado
 '''
 import numpy as np
 import matplotlib.pylab as plt
+import matplotlib.patches as patches
 import mpl_toolkits.mplot3d.axes3d as axes3d
 
 from matplotlib import cm
 
 class Plotter:
+	env = None
 	outputPath = ''
 	numRows = 0
 	numCols = 0
+	matrixMDP = None
 
-	def __init__(self, output, nRows, nCols):
+	def __init__(self, output, environment):
 		'''Initialize variables that will be useful everywhere.'''
+		self.env = environment
 		self.outputPath = output
-		self.numRows = nRows
-		self.numCols = nCols
+		self.numRows, self.numCols = self.env.getGridDimensions()
+		self.matrixMDP = self.env.matrixMDP
 
 	def plotBasisFunctions(self, eigenvalues, eigenvectors):
 		'''3d plot of the basis function. Right now I am plotting eigenvectors,
@@ -33,7 +37,7 @@ class Plotter:
 
 			ax.plot_surface(X, Y, Z, rstride = 1, cstride = 1,
 				cmap = plt.get_cmap('jet'))
-			plt.savefig(self.outputPath + 'eig_' + str(i) + '.png')
+			plt.savefig(self.outputPath + str(i) + '_eig' + '.png')
 			plt.close()
 
 
@@ -50,4 +54,49 @@ class Plotter:
 		ax.plot_surface(X, Y, Z, rstride = 1, cstride = 1,
 			cmap = plt.get_cmap('jet'))
 		plt.savefig(self.outputPath + prefix + 'value_function.png')
+		plt.close()
+
+
+	def plotPolicy(self, policy, prefix):
+		plt.clf()
+		for i in xrange(self.numRows):
+			for j in xrange(self.numCols):
+				dx = 0
+				dy = 0
+				if policy[i] == 0: # up
+					dy = 0.35
+				elif policy[i] == 1: #right
+					dx = 0.35
+				elif policy[i] == 2: #down
+					dy = -0.35
+				elif policy[i] == 3: #left
+					dx = -0.35
+				elif policy[i] == -1: # termination
+					plt.Circle((j + 0.5, i + 0.5), 0.1, color='k')
+
+				if self.matrixMDP[i][j] != -1:
+					plt.arrow(j + 0.5, i + 0.5, dx, dy, head_width=0.05, head_length=0.05, fc='k', ec='k')
+				else:
+					plt.gca().add_patch(
+						patches.Rectangle(
+						(j, i),   # (x,y)
+						1.0,          # width
+						1.0,          # height
+						facecolor = "gray"
+						)
+					)
+
+		plt.xlim([0, self.numCols])
+		plt.ylim([0, self.numRows])
+		
+
+		for i in xrange(self.numCols):
+			plt.axvline(i, color='k', linestyle=':')
+		plt.axvline(self.numCols, color='k', linestyle=':')
+		
+		for j in xrange(self.numRows):
+			plt.axhline(j, color='k', linestyle=':')
+		plt.axhline(self.numRows, color='k', linestyle=':')
+
+		plt.savefig(self.outputPath + prefix + 'policy.png')
 		plt.close()
