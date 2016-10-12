@@ -82,6 +82,16 @@ class GridWorld:
 					self.goalX = i
 					self.goalY = j
 
+	def _getStateIndex(self, x, y):
+		idx = y + x * self.numCols
+		return idx
+
+	def _getStateXY(self, idx):
+		x = idx % self.numCols
+		y = (idx - self.currY)/self.numCols
+
+		return x, y
+
 	def _getNextState(self, action):
 		''' This function returns what is going to be the next state (x,y)
 		    given an action. It does not update the next state, it is a one-step
@@ -122,14 +132,14 @@ class GridWorld:
 			return self.currX, self.currY
 
 	def getCurrentState(self):
-		currStateIdx = self.currY + self.currX * self.numCols
+		currStateIdx = self._getStateIndex(self.currX, self.currY)
 		return currStateIdx
 
 	def _getNextReward(self, currX, currY, action, nextX, nextY):
 		# I first look at the state I am in
-		currStateIdx = currX + currY * self.numCols
+		currStateIdx = self._getStateIndex(currX, currY)
 		# Now I can look at the next state
-		nextStateIdx = nextX + nextY * self.numCols
+		nextStateIdx = self._getStateIndex(nextX, nextY)
 
 		# Now I can finally compute the reward
 		reward = self.rewardFunction[nextStateIdx] \
@@ -207,15 +217,14 @@ class GridWorld:
 		# Now I can reset the agent to the state I was told to
 		tempX = self.currX
 		tempY = self.currY
-		self.currY = currState % self.numCols
-		self.currX = (currState - self.currY)/self.numCols
+		self.currX, self.currX = self._getStateXY(currState)
 
 		# Now I can ask what will happen next in this new state
 		nextStateIdx = -1
 		nextX, nextY = self._getNextState(action)
 		if nextX != -1 and nextY != -1: # If it is not the absorbing state:
 			reward = self._getNextReward(self.currX, self.currY, action, nextX, nextY)
-			nextStateIdx = nextY + nextX * self.numCols
+			nextStateIdx = self._getStateIndex(nextX, nextY)
 		else:
 			reward = 0
 			nextStateIdx = self.numStates
