@@ -129,7 +129,7 @@ class GridWorld:
 		# I first look at the state I am in
 		currStateIdx = currX + currY * self.numCols
 		# Now I can look at the next state
-		nextStateIdx = nextY + nextX * self.numCols
+		nextStateIdx = nextX + nextY * self.numCols
 
 		# Now I can finally compute the reward
 		reward = self.rewardFunction[nextStateIdx] \
