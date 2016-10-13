@@ -32,11 +32,19 @@ class Plotter:
 		for i in xrange(len(eigenvalues)):	
 			fig, ax = plt.subplots(subplot_kw = dict(projection = '3d'))
 			X, Y = np.meshgrid(np.arange(self.numRows), np.arange(self.numCols))
-			Z = eigenvectors[:,i].reshape(self.numRows, self.numCols)
+			Z = eigenvectors[:,i].reshape(self.numCols, self.numRows)
+
+			for ii in xrange(len(X)):
+				for j in xrange(len(X[ii])/2):
+					tmp = X[ii][j]
+					X[ii][j] = X[ii][len(X[ii]) - j - 1]
+					X[ii][len(X[ii]) - j - 1] = tmp
+
 			my_col = cm.jet(np.random.rand(Z.shape[0],Z.shape[1]))
 
 			ax.plot_surface(X, Y, Z, rstride = 1, cstride = 1,
 				cmap = plt.get_cmap('jet'))
+			plt.gca().view_init(elev=30, azim=30)
 			plt.savefig(self.outputPath + str(i) + '_eig' + '.png')
 			plt.close()
 
@@ -45,14 +53,23 @@ class Plotter:
 		plt.savefig(self.outputPath + 'eigenvalues.png')
 
 	def plotValueFunction(self, valueFunction, prefix):
+
 		'''3d plot of a value function.''' 
 		fig, ax = plt.subplots(subplot_kw = dict(projection = '3d'))
-		X, Y = np.meshgrid(np.arange(self.numRows), np.arange(self.numCols))
+		X, Y = np.meshgrid(np.arange(self.numCols), np.arange(self.numRows))
 		Z = valueFunction.reshape(self.numRows, self.numCols)
+
+		for i in xrange(len(X)):
+			for j in xrange(len(X[i])/2):
+				tmp = X[i][j]
+				X[i][j] = X[i][len(X[i]) - j - 1]
+				X[i][len(X[i]) - j - 1] = tmp
+
 		my_col = cm.jet(np.random.rand(Z.shape[0],Z.shape[1]))
 
 		ax.plot_surface(X, Y, Z, rstride = 1, cstride = 1,
 			cmap = plt.get_cmap('jet'))
+		plt.gca().view_init(elev=30, azim=30)
 		plt.savefig(self.outputPath + prefix + 'value_function.png')
 		plt.close()
 
@@ -60,8 +77,7 @@ class Plotter:
 	def plotPolicy(self, policy, prefix):
 		plt.clf()
 		for idx in xrange(len(policy)):
-			j = idx % self.numCols
-			i = (idx - j)/self.numCols
+			i, j = self.env.getStateXY(idx)
 
 			dx = 0
 			dy = 0
@@ -74,17 +90,17 @@ class Plotter:
 			elif policy[idx] == 3: #left
 				dx = -0.35
 			elif self.matrixMDP[i][j] != -1 and policy[idx] == 4: # termination
-				circle = plt.Circle((j + 0.5, i + 0.5), 0.025, color='k')
+				circle = plt.Circle((j + 0.5, self.numRows - i + 0.5 - 1), 0.025, color='k')
 				plt.gca().add_artist(circle)
 
 			if self.matrixMDP[i][j] != -1:
-				plt.arrow(j + 0.5, i + 0.5, dx, dy, head_width=0.05, head_length=0.05, fc='k', ec='k')
+				plt.arrow(j + 0.5, self.numRows - i + 0.5 - 1, dx, dy, head_width=0.05, head_length=0.05, fc='k', ec='k')
 			else:
 				plt.gca().add_patch(
 					patches.Rectangle(
-					(j, i),       # (x,y)
-					1.0,          # width
-					1.0,          # height
+					(j, self.numRows - i - 1), # (x,y)
+					1.0,                   # width
+					1.0,                   # height
 					facecolor = "gray"
 					)
 				)

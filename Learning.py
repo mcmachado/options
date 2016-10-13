@@ -51,6 +51,9 @@ class Learning:
 				tempV[i] = nextR + self.gamma * self.V[nextS]
 			# Now I take the argmax
 			self.pi[s] = np.argmax(tempV)
+			# I break ties always choosing to terminate:
+			if math.fabs(tempV[self.pi[s]] - tempV[(len(self.actionSet) - 1)]) < 0.001:
+				self.pi[s] = (len(self.actionSet) - 1)
 			if old_action != self.pi[s]:
 				policy_stable = False
 

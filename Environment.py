@@ -25,12 +25,12 @@ class GridWorld:
 	adjMatrix = None
 	rewardFunction = None
 
-	currX = -1
-	currY = -1
-	startX = -1
-	startY = -1
-	goalX = -1
-	goalY = -1
+	currX = 0
+	currY = 0
+	startX = 0
+	startY = 0
+	goalX = 0
+	goalY = 0
 
 	def __init__(self, path=None, strin=None):
 		'''Return a GridWorld object that instantiates the MDP defined in a file
@@ -49,7 +49,6 @@ class GridWorld:
 			sys.exit()
 
 		self._parseString()
-
 		self.currX = self.startX
 		self.currY = self.startY
 		self.numStates = self.numRows * self.numCols
@@ -86,9 +85,9 @@ class GridWorld:
 		idx = y + x * self.numCols
 		return idx
 
-	def _getStateXY(self, idx):
-		x = idx % self.numCols
-		y = (idx - self.currY)/self.numCols
+	def getStateXY(self, idx):
+		y = idx % self.numCols
+		x = (idx - self.currY)/self.numCols
 
 		return x, y
 
@@ -96,6 +95,7 @@ class GridWorld:
 		''' This function returns what is going to be the next state (x,y)
 		    given an action. It does not update the next state, it is a one-step
 		    forward model. '''
+
 		nextX = self.currX
 		nextY = self.currY
 
@@ -115,13 +115,13 @@ class GridWorld:
 			elif action == 'left' and self.currY > 0:
 				nextX = self.currX
 				nextY = self.currY - 1
-		
+
 		if nextX < 0 or nextY < 0:
 			print 'You were supposed to have hit a wall before!' 
 			print 'There is something wrong with your MDP definition.'
 			sys.exit()
 
-		if nextY == len(self.matrixMDP) or nextX == len(self.matrixMDP[nextY]):
+		if nextX == len(self.matrixMDP) or nextY == len(self.matrixMDP[nextY]):
 			print 'You were supposed to have hit a wall before!' 
 			print 'There is something wrong with your MDP definition.'
 			sys.exit()
@@ -217,7 +217,7 @@ class GridWorld:
 		# Now I can reset the agent to the state I was told to
 		tempX = self.currX
 		tempY = self.currY
-		self.currX, self.currX = self._getStateXY(currState)
+		self.currX, self.currY = self.getStateXY(currState)
 
 		# Now I can ask what will happen next in this new state
 		nextStateIdx = -1
