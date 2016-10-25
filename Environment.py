@@ -82,10 +82,14 @@ class GridWorld:
 					self.goalY = j
 
 	def _getStateIndex(self, x, y):
+		''' Given a state coordinate (x,y) this method returns the index that
+			uniquely identifies this state.'''
 		idx = y + x * self.numCols
 		return idx
 
 	def getStateXY(self, idx):
+		''' Given the index that uniquely identifies each state this method
+			returns its equivalent coordinate (x,y).'''
 		y = idx % self.numCols
 		x = (idx - self.currY)/self.numCols
 
@@ -121,7 +125,7 @@ class GridWorld:
 			print 'There is something wrong with your MDP definition.'
 			sys.exit()
 
-		if nextX == len(self.matrixMDP) or nextY == len(self.matrixMDP[nextY]):
+		if nextX == len(self.matrixMDP) or nextY == len(self.matrixMDP[0]):
 			print 'You were supposed to have hit a wall before!' 
 			print 'There is something wrong with your MDP definition.'
 			sys.exit()
@@ -132,10 +136,15 @@ class GridWorld:
 			return self.currX, self.currY
 
 	def getCurrentState(self):
+		''' Returns the unique identifier for the current state the agent is.'''
+
 		currStateIdx = self._getStateIndex(self.currX, self.currY)
 		return currStateIdx
 
 	def _getNextReward(self, currX, currY, action, nextX, nextY):
+		''' Returns the reward the agent will observe if in state (currX, currY)
+			and it takes action 'action' leading to the state (nextX, nextY).'''
+
 		# I first look at the state I am in
 		currStateIdx = self._getStateIndex(currX, currY)
 		# Now I can look at the next state
@@ -147,6 +156,13 @@ class GridWorld:
 
 		return reward
 
+	def isTerminal(self):
+		''' Returns whether the agent is in a terminal state (or goal).'''
+		if self.currX == self.goalX and self.currY == self.goalY:
+			return True
+		else:
+			return False
+
 	def act(self, action):
 		''' At first there are four possible actions: up, down, left and right.
 		If the agent tries to go to a -1 state it will stay on the same coord.
@@ -154,18 +170,22 @@ class GridWorld:
 
 		# Basically I get what will be the next state and before really making
 		# it my current state I verify everything is sound.
-		nextX, nextY = self._getNextState(action)
-		reward = self._getNextReward(
-			self.currX, self.currY, action, nextX, nextY)
-		self.currX = nextX
-		self.currY = nextY
-
-		return reward
+		if self.isTerminal():
+			return 0
+		else:
+			nextX, nextY = self._getNextState(action)
+			reward = self._getNextReward(
+				self.currX, self.currY, action, nextX, nextY)
+			self.currX = nextX
+			self.currY = nextY
+			return reward
 
 	def getGridDimensions(self):
+		''' Returns gridworld width and height.'''
 		return self.numRows, self.numCols
 
 	def getNumStates(self):
+		''' Returns the total number of states (including walls) in the MDP.'''
 		return self.numStates
 
 	def getActionSet(self):
@@ -220,14 +240,19 @@ class GridWorld:
 		self.currX, self.currY = self.getStateXY(currState)
 
 		# Now I can ask what will happen next in this new state
-		nextStateIdx = -1
-		nextX, nextY = self._getNextState(action)
-		if nextX != -1 and nextY != -1: # If it is not the absorbing state:
-			reward = self._getNextReward(self.currX, self.currY, action, nextX, nextY)
-			nextStateIdx = self._getStateIndex(nextX, nextY)
-		else:
+		nextStateIdx = None
+		reward = None
+		if self.isTerminal():
+			nextStateIdx = currStateIdx
 			reward = 0
-			nextStateIdx = self.numStates
+		else:
+			nextX, nextY = self._getNextState(action)
+			if nextX != -1 and nextY != -1: # If it is not the absorbing state:
+				reward = self._getNextReward(self.currX, self.currY, action, nextX, nextY)
+				nextStateIdx = self._getStateIndex(nextX, nextY)
+			else:
+				reward = 0
+				nextStateIdx = self.numStates
 
 		# We need to restore the previous configuration:
 		self.currX = tempX
