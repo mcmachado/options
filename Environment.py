@@ -75,9 +75,11 @@ class GridWorld:
 				elif data[i+1][j] == '.':
 					self.matrixMDP[i][j] = 0
 				elif data[i+1][j] == 'S':
+					self.matrixMDP[i][j] = 0
 					self.startX = i
 					self.startY = j
 				elif data[i+1][j] == 'G':
+					self.matrixMDP[i][j] = 0
 					self.goalX = i
 					self.goalY = j
 
@@ -91,7 +93,7 @@ class GridWorld:
 		''' Given the index that uniquely identifies each state this method
 			returns its equivalent coordinate (x,y).'''
 		y = idx % self.numCols
-		x = (idx - self.currY)/self.numCols
+		x = (idx - y)/self.numCols
 
 		return x, y
 
@@ -145,6 +147,12 @@ class GridWorld:
 		''' Returns the reward the agent will observe if in state (currX, currY)
 			and it takes action 'action' leading to the state (nextX, nextY).'''
 
+		# If a reward vector was not informed we get -1 everywhere until
+		# termination. After termination this function is not called anymore,
+		# thus we can just return 0 elsewhere in the code.
+		if self.rewardFunction == None:
+			return -1
+
 		# I first look at the state I am in
 		currStateIdx = self._getStateIndex(currX, currY)
 		# Now I can look at the next state
@@ -169,8 +177,9 @@ class GridWorld:
 		I decided to not implement any stochasticity for now.'''
 
 		# Basically I get what will be the next state and before really making
-		# it my current state I verify everything is sound.
-		if self.isTerminal():
+		# it my current state I verify everything is sound (it is terminal only
+		# if we are not using eigenpurposes).
+		if self.rewardFunction == None and self.isTerminal():
 			return 0
 		else:
 			nextX, nextY = self._getNextState(action)
@@ -242,7 +251,7 @@ class GridWorld:
 		# Now I can ask what will happen next in this new state
 		nextStateIdx = None
 		reward = None
-		if self.isTerminal():
+		if self.rewardFunction == None and self.isTerminal():
 			nextStateIdx = currStateIdx
 			reward = 0
 		else:

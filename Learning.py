@@ -49,6 +49,7 @@ class Learning:
 				nextS, nextR = self.environment.getNextStateAndReward(
 					s, self.actionSet[i])
 				tempV[i] = nextR + self.gamma * self.V[nextS]
+
 			# Now I take the argmax
 			self.pi[s] = np.argmax(tempV)
 			# I break ties always choosing to terminate:
