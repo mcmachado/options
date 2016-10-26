@@ -257,7 +257,7 @@ class GridWorld:
 		nextStateIdx = None
 		reward = None
 		if self.rewardFunction == None and self.isTerminal():
-			nextStateIdx = currStateIdx
+			nextStateIdx = self.numStates
 			reward = 0
 		else:
 			nextX, nextY = self._getNextState(action)
