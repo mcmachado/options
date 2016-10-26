@@ -143,6 +143,11 @@ class GridWorld:
 		currStateIdx = self._getStateIndex(self.currX, self.currY)
 		return currStateIdx
 
+	def getGoalState(self):
+		''' Returns the unique identifier to the goal.'''
+		goalStateIdx = self._getStateIndex(self.goalX, self.goalY)
+		return goalStateIdx
+
 	def _getNextReward(self, currX, currY, action, nextX, nextY):
 		''' Returns the reward the agent will observe if in state (currX, currY)
 			and it takes action 'action' leading to the state (nextX, nextY).'''

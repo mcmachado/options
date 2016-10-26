@@ -67,9 +67,23 @@ if __name__ == "__main__":
 	for i in xrange(guard):
 		idx = guard - i - 1
 		print 'Solving for eigenvector #' + str(idx)
-		polIter = Learning(0.9, env)
+		polIter = Learning(0.9, env, augmentActionSet=True)
 		env.defineRewardFunction(eigenvectors[:,idx])
 		V, pi = polIter.solvePolicyIteration()
 
 		plot.plotValueFunction(V[0:numStates], str(idx) + '_')
 		plot.plotPolicy(pi[0:numStates], str(idx) + '_')
+
+	'''
+	# Simple test for policy iteration
+	polIter = Learning(0.9, env, augmentActionSet=False)
+	V, pi = polIter.solvePolicyIteration()
+	
+	# I'll assign the goal as the termination action
+	pi[env.getGoalState()] = 4
+
+	# Now we just plot the learned value function and the obtained policy
+	plot = Plotter(outputPath, env)
+	plot.plotValueFunction(V[0:numStates], 'goal_')
+	plot.plotPolicy(pi[0:numStates], 'goal_')
+	'''

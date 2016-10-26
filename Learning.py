@@ -16,7 +16,7 @@ class Learning:
 	actionSet = None
 	environment = None
 
-	def __init__(self, gamma, env):
+	def __init__(self, gamma, env, augmentActionSet=False):
 		'''Initialize variables that are useful everywhere.'''
 		self.gamma = gamma
 		self.environment = env
@@ -24,7 +24,11 @@ class Learning:
 
 		self.V = np.zeros(self.numStates + 1)
 		self.pi = np.zeros(self.numStates + 1, dtype = np.int)
-		self.actionSet = np.append(env.getActionSet(), ['terminate'])
+
+		if augmentActionSet:
+			self.actionSet = np.append(env.getActionSet(), ['terminate'])
+		else:
+			self.actionSet = env.getActionSet()
 
 	def _evalPolicy(self):
 		''' Policy evaluation step.'''
