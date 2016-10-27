@@ -14,24 +14,34 @@ from Drawing import Plotter
 from Utils import Utils
 from Environment import GridWorld
 
-if __name__ == "__main__":
-	# Parse command line
-	parser = argparse.ArgumentParser(
-		description='Obtain proto-value functions, options, graphs, etc.')
-	parser.add_argument('-i', '--input', type = str, default = 'mdps/fig1.mdp',
-		help='File containing the MDP definition.')
-	parser.add_argument('-o', '--output', type = str, default = 'graphs/fig1_',
-		help='Prefix that will be used to generate all outputs.')
+def testPolicyEvaluation(env):
+	''' Simple test for policy evaluation '''
 
-	args = parser.parse_args()
+	pi = numStates * [[0.25, 0.25, 0.25, 0.25]]
 
-	inputMDP = args.input
-	outputPath = args.output
+	#polEval = Learning(0.9999, env, augmentActionSet=False)
+	#V = polEval.solvePolicyEvaluation(pi)
 
-	# Create environment
-	env = GridWorld(path = inputMDP)
-	numStates = env.getNumStates()
-	numRows, numCols = env.getGridDimensions()
+	bellman = Learning(1, env, augmentActionSet=False)
+	expectation = bellman.solveBellmanEquations(pi)
+	print expectation
+
+def testPolicyIteration(env):
+	''' Simple test for policy iteration '''
+
+	polIter = Learning(0.9, env, augmentActionSet=False)
+	V, pi = polIter.solvePolicyIteration()
+	
+	# I'll assign the goal as the termination action
+	pi[env.getGoalState()] = 4
+
+	# Now we just plot the learned value function and the obtained policy
+	plot = Plotter(outputPath, env)
+	plot.plotValueFunction(V[0:numStates], 'goal_')
+	plot.plotPolicy(pi[0:numStates], 'goal_')
+
+def testOptionDiscoveryThroughPVFs(env):
+	''' Simple test for option discovery through proto-value functions. '''
 
 	# Computing the Combinatorial Laplacian
 	W = env.getAdjacencyMatrix()
@@ -74,16 +84,26 @@ if __name__ == "__main__":
 		plot.plotValueFunction(V[0:numStates], str(idx) + '_')
 		plot.plotPolicy(pi[0:numStates], str(idx) + '_')
 
-	'''
-	# Simple test for policy iteration
-	polIter = Learning(0.9, env, augmentActionSet=False)
-	V, pi = polIter.solvePolicyIteration()
-	
-	# I'll assign the goal as the termination action
-	pi[env.getGoalState()] = 4
 
-	# Now we just plot the learned value function and the obtained policy
-	plot = Plotter(outputPath, env)
-	plot.plotValueFunction(V[0:numStates], 'goal_')
-	plot.plotPolicy(pi[0:numStates], 'goal_')
-	'''
+if __name__ == "__main__":
+	# Parse command line
+	parser = argparse.ArgumentParser(
+		description='Obtain proto-value functions, options, graphs, etc.')
+	parser.add_argument('-i', '--input', type = str, default = 'mdps/fig1.mdp',
+		help='File containing the MDP definition.')
+	parser.add_argument('-o', '--output', type = str, default = 'graphs/fig1_',
+		help='Prefix that will be used to generate all outputs.')
+
+	args = parser.parse_args()
+
+	inputMDP = args.input
+	outputPath = args.output
+
+	# Create environment
+	env = GridWorld(path = inputMDP)
+	numStates = env.getNumStates()
+	numRows, numCols = env.getGridDimensions()
+
+	#testOptionDiscoveryThroughPVFs(env)
+	#testPolicyIteration(env)
+	testPolicyEvaluation(env)
