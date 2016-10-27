@@ -169,6 +169,10 @@ class GridWorld:
 
 		return reward
 
+	def resetEnvironment(self):
+		self.currX = self.startX
+		self.currY = self.startY
+
 	def isTerminal(self):
 		''' Returns whether the agent is in a terminal state (or goal).'''
 		if self.currX == self.goalX and self.currY == self.goalY:
