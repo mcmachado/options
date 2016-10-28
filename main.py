@@ -19,12 +19,18 @@ def testPolicyEvaluation(env):
 
 	pi = numStates * [[0.25, 0.25, 0.25, 0.25]]
 
+	#This solution is slower and it does not work for gamma = 1
 	#polEval = Learning(0.9999, env, augmentActionSet=False)
-	#V = polEval.solvePolicyEvaluation(pi)
+	#expectation = polEval.solvePolicyEvaluation(pi)
 
 	bellman = Learning(1, env, augmentActionSet=False)
 	expectation = bellman.solveBellmanEquations(pi)
-	print expectation
+
+	for i in xrange(len(expectation) - 1):
+		sys.stdout.write(str(expectation[i]) + '\t')
+		if (i + 1) % 4 == 0:
+			print
+	print
 
 def testPolicyIteration(env):
 	''' Simple test for policy iteration '''

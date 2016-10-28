@@ -90,6 +90,7 @@ class Learning:
 		# I'll use the same V, it shouldn't really matter,
 		# although ideally these things should be independent
 		self.V = np.zeros(self.numStates + 1)
+		iteration = 1
 
 		delta = 1
 		while delta > theta:
@@ -105,14 +106,18 @@ class Learning:
 
 				self.V[s] = tempSum
 				delta = max(delta, math.fabs(v - self.V[s]))
-				print delta
 
+			if iteration %1000 == 0:
+				print 'Iteration:', iteration, '\tDelta:', delta
+			iteration += 1
+
+		'''
 		import sys
 		for i in xrange(16):
 			sys.stdout.write(str(self.V[i]) + ' ')
 			if (i + 1) % 4 == 0:
 				print
-
+		'''
 		return self.V
 
 
@@ -143,6 +148,7 @@ class Learning:
 			if hasOnlyZeros:
 				a_equations[i][i] = 1
 				b_equations[i] = 0
+
 
 		expectation = np.linalg.solve(a_equations, b_equations)
 		return expectation
