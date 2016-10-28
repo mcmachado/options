@@ -13,6 +13,7 @@ from Learning import Learning
 from Drawing import Plotter
 from Utils import Utils
 from Environment import GridWorld
+from MDPStats import MDPStats
 
 def testPolicyEvaluation(env):
 	''' Simple test for policy evaluation '''
@@ -90,7 +91,6 @@ def testOptionDiscoveryThroughPVFs(env):
 		plot.plotValueFunction(V[0:numStates], str(idx) + '_')
 		plot.plotPolicy(pi[0:numStates], str(idx) + '_')
 
-
 if __name__ == "__main__":
 	# Parse command line
 	parser = argparse.ArgumentParser(
@@ -112,4 +112,10 @@ if __name__ == "__main__":
 
 	#testOptionDiscoveryThroughPVFs(env)
 	#testPolicyIteration(env)
-	testPolicyEvaluation(env)
+	#testPolicyEvaluation(env)
+
+	gamma = 1.0
+	pi = numStates * [[0.25, 0.25, 0.25, 0.25]]
+
+	stats = MDPStats(gamma, env)
+	stats.getAvgNumStepsBetweenEveryPoint(pi)
