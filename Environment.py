@@ -282,3 +282,23 @@ class GridWorld:
 		''' Load vector that will define the reward function: the dot product
 		    between the loaded vector and the feature representation.'''
 		self.rewardFunction = vector
+
+	def defineGoalState(self, idx):
+		''' Returns True if the goal was properly set, otherwise returns False.
+		    One may fail to set a goal if it tries to do so in a wall state, in
+		    an invalid index, etc.'''
+
+		x, y = self.getStateXY(idx)
+
+		if self.adjMatrix == None:
+			self._fillAdjacencyMatrix()
+
+		if idx >= self.numStates:
+			return False
+		elif self.matrixMDP[x][y] == -1:
+			return False
+		else:
+			self.goalX = x
+			self.goalY = y
+			self.resetEnvironment()
+			return True

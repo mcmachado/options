@@ -29,21 +29,37 @@ class MDPStats:
 		else:
 			self.actionSet = env.getActionSet()
 
+	def _computeAvgOnMDP(self, V, ignoreZeros=True):
+		''' Just average the values in a vector. One can ignore zeros.'''
+
+		counter = 0
+		summation = 0
+
+		for i in xrange(len(V)):
+			if V[i] != 0:
+				summation += V[i]
+				counter += 1
+
+		return summation / counter
+
 	def getAvgNumStepsBetweenEveryPoint(self, pi):
 		''' '''
 
-		#This solution is slower and it does not work for gamma = 1
-		#if self.gamma == 1:
-		#	print 'This won\'t work...'
-		#	sys.exit()
-		#polEval = Learning(self.gamma, environment, augmentActionSet=False)
-		#expectation = polEval.solvePolicyEvaluation(pi)
+		avgs = []
 
-		bellman = Learning(self.gamma, self.environment, augmentActionSet=False)
-		expectation = bellman.solveBellmanEquations(pi)
+		for s in xrange(self.environment.getNumStates()):
+			goalChanged = self.environment.defineGoalState(s)
 
-		for i in xrange(len(expectation) - 1):
-			sys.stdout.write(str(expectation[i]) + '\t')
-			if (i + 1) % 4 == 0:
+			if goalChanged:
+				bellman = Learning(
+					self.gamma, self.environment, augmentActionSet=False)
+				expectation = bellman.solveBellmanEquations(pi)
+
+				for i in xrange(len(expectation) - 1):
+					sys.stdout.write(str(expectation[i]) + '\t')
+					if (i + 1) % 5 == 0:
+						print
 				print
-		print
+				avgs.append(self._computeAvgOnMDP(expectation))
+
+		return sum(avgs) / float(len(avgs))
