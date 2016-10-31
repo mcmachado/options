@@ -93,7 +93,11 @@ def testOptionDiscoveryThroughPVFs(env):
 
 def getExpectedNumberOfStepsFromOption(env):
 
+	#I'll need this when computing the expected number of steps:
 	options = []
+	actionSet = env.getActionSet()
+	actionSetPerOption = []
+
 	# Computing the Combinatorial Laplacian
 	W = env.getAdjacencyMatrix()
 	D = np.zeros((numStates, numStates))
@@ -130,8 +134,9 @@ def getExpectedNumberOfStepsFromOption(env):
 
 		options.append(pi[0:numStates])
 
-	actionSet = env.getActionSet()
-	actionSet.append('terminate')
+	optionsActionSet = env.getActionSet()
+	optionsActionSet.append('terminate')
+	actionSetPerOption.append(optionsActionSet)
 
 	plot = Plotter(outputPath, env)
 	plot.plotPolicy(options[len(options) - 2][0:numStates], 'policy_')
@@ -140,7 +145,38 @@ def getExpectedNumberOfStepsFromOption(env):
 	env.resetEnvironment()
 
 	print
-	print 's\', r\' = ', env.getNextStateAndRewardFromOption(8, options[len(options) - 2], actionSet)
+	#print 's\', r\' = ', env.getNextStateAndRewardFromOption(7, options[len(options) - 2], optionsActionSet)
+
+	actionSet.append(options[len(options) - 2])
+
+	# I'm going to build a random policy now:
+	pi = []
+	for i in xrange(numStates):
+		pi.append([])
+		for j in xrange(len(actionSet)):
+			pi[i].append(1.0/float(len(actionSet)))
+
+	avgs = []
+	for s in xrange(env.getNumStates()):
+		goalChanged = env.defineGoalState(s)
+
+		if goalChanged:
+			bellman = Learning(gamma, env, augmentActionSet=False)
+			#######
+			####### TODO: I just need to change the function below to have an if-clause
+			#######       that states that, if the action is an option, call the other
+			#######       function. Annoyingly, I'll have to change parameters along the way
+			#######
+			expectation = bellman.solveBellmanEquations(pi, actionSet, actionSetPerOption)
+
+			for i in xrange(len(expectation) - 1):
+				sys.stdout.write(str(expectation[i]) + '\t')
+				if (i + 1) % 5 == 0:
+					print
+			print
+			avgs.append(self._computeAvgOnMDP(expectation))
+
+	return sum(avgs) / float(len(avgs))
 
 
 if __name__ == "__main__":

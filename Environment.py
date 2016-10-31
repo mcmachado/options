@@ -291,10 +291,16 @@ class GridWorld:
 		self.currX, self.currY = self.getStateXY(currState)
 
 		# Now I can ask what will happen next in this new state
-		aTerminate = len(actionSet) - 1
 		accum_reward = 0
+		nextStateIdx = currState
 
+		aTerminate = len(actionSet) - 1
 		nextAction = o_pi[currState]
+
+		# TODO:::::: I need to fix this. If we are already at the goal we should get 0
+		if nextAction == aTerminate:
+			accum_reward = -1
+
 		while nextAction != aTerminate:
 			nextAction = o_pi[currState]
 			if self.rewardFunction == None and self.isTerminal():

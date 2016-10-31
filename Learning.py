@@ -120,7 +120,9 @@ class Learning:
 		'''
 		return self.V
 
-	def solveBellmanEquations(self, pi):
+	def solveBellmanEquations(self, pi, fullActionSet, optionsActionSet):
+
+		numberOfPrimitiveActions = 4
 		# ax = b
 		a_equations = np.zeros((self.numStates, self.numStates))
 		b_equations = np.zeros(self.numStates)
@@ -133,8 +135,15 @@ class Learning:
 		for s in xrange(self.numStates - 1):
 			a_equations[s][s] = -1
 			for a in xrange(len(pi[s])):
-				nextS, nextR = self.environment.getNextStateAndReward(
-						s, self.actionSet[a])
+				nextS = -1
+				nextR = -1
+
+				if isinstance(fullActionSet[a], basestring): #if it is a primitive action
+					nextS, nextR = self.environment.getNextStateAndReward(
+						s, fullActionSet[a])
+				else: #if it is an option
+					nextS, nextR = self.environment.getNextStateAndRewardFromOption(
+						s, fullActionSet[a], optionsActionSet[a - numberOfPrimitiveActions])
 				a_equations[s][nextS] += pi[s][a] * self.gamma
 				b_equations[s] -= pi[s][a] * nextR
 
