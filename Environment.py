@@ -278,6 +278,47 @@ class GridWorld:
 
 		return nextStateIdx, reward
 
+	def getNextStateAndRewardFromOption(self, currState, o_pi, actionSet):
+		'''Execute option until it terminates. It will always terminate. We
+			then return the number of time steps it took (-reward) and the
+			terminal state.'''
+
+		# First I'll save the original state the agent is on
+		currStateIdx = self.getCurrentState()
+		# Now I can reset the agent to the state I was told to
+		tempX = self.currX
+		tempY = self.currY
+		self.currX, self.currY = self.getStateXY(currState)
+
+		# Now I can ask what will happen next in this new state
+		aTerminate = len(actionSet) - 1
+		accum_reward = 0
+
+		nextAction = o_pi[currState]
+		while nextAction != aTerminate:
+			nextAction = o_pi[currState]
+			if self.rewardFunction == None and self.isTerminal():
+				nextStateIdx = self.numStates
+				nextAction = aTerminate
+				reward = 0
+			else:
+				nextX, nextY = self._getNextState(actionSet[nextAction])
+				if nextX != -1 and nextY != -1: # If it is not the absorbing state:
+					reward = self._getNextReward(self.currX, self.currY, nextAction, nextX, nextY)
+					nextStateIdx = self._getStateIndex(nextX, nextY)
+				else:
+					reward = 0
+					nextStateIdx = self.numStates
+
+			accum_reward += reward
+			currState = nextStateIdx
+
+		# We need to restore the previous configuration:
+		self.currX = tempX
+		self.currY = tempY
+
+		return nextStateIdx, accum_reward
+
 	def defineRewardFunction(self, vector):
 		''' Load vector that will define the reward function: the dot product
 		    between the loaded vector and the feature representation.'''

@@ -120,7 +120,6 @@ class Learning:
 		'''
 		return self.V
 
-
 	def solveBellmanEquations(self, pi):
 		# ax = b
 		a_equations = np.zeros((self.numStates, self.numStates))
