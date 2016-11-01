@@ -156,7 +156,10 @@ class GridWorld:
 		# termination. After termination this function is not called anymore,
 		# thus we can just return 0 elsewhere in the code.
 		if self.rewardFunction == None:
-			return -1
+			if self.matrixMDP[nextX][nextY] == -1 or self._getStateIndex(nextX, nextY) == self.numStates:
+				return 0
+			else:
+				return -1
 
 		# I first look at the state I am in
 		currStateIdx = self._getStateIndex(currX, currY)
@@ -283,12 +286,15 @@ class GridWorld:
 			then return the number of time steps it took (-reward) and the
 			terminal state.'''
 
+		# In case it is the absorbing state encoding end of an episode
+		if currState == self.numStates:
+			return currState, 0
+
 		# First I'll save the original state the agent is on
 		currStateIdx = self.getCurrentState()
 		# Now I can reset the agent to the state I was told to
 		tempX = self.currX
 		tempY = self.currY
-		self.currX, self.currY = self.getStateXY(currState)
 
 		# Now I can ask what will happen next in this new state
 		accum_reward = 0
@@ -297,12 +303,11 @@ class GridWorld:
 		aTerminate = len(actionSet) - 1
 		nextAction = o_pi[currState]
 
-		# TODO:::::: I need to fix this. If we are already at the goal we should get 0
-		if nextAction == aTerminate:
-			accum_reward = -1
-
 		while nextAction != aTerminate:
+
 			nextAction = o_pi[currState]
+			self.currX, self.currY = self.getStateXY(currState)
+
 			if self.rewardFunction == None and self.isTerminal():
 				nextStateIdx = self.numStates
 				nextAction = aTerminate

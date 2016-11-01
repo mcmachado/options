@@ -174,7 +174,7 @@ def getExpectedNumberOfStepsFromOption(env):
 				if (i + 1) % 5 == 0:
 					print
 			print
-			avgs.append(self._computeAvgOnMDP(expectation))
+			avgs.append(stats._computeAvgOnMDP(expectation))
 
 	return sum(avgs) / float(len(avgs))
 
@@ -207,4 +207,4 @@ if __name__ == "__main__":
 
 	stats = MDPStats(gamma, env)
 	#stats.getAvgNumStepsBetweenEveryPoint(pi)
-	getExpectedNumberOfStepsFromOption(env)
+	print getExpectedNumberOfStepsFromOption(env)
