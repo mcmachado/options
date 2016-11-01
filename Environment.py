@@ -106,7 +106,10 @@ class GridWorld:
 		nextY = self.currY
 
 		if action == 'terminate':
-			return -1, -1 # absorbing state
+			if nextX == self.goalX and nextY == self.goalY:
+				return -1, -1 # absorbing state
+			else:
+				return self.currX, self.currY
 
 		if self.matrixMDP[self.currX][self.currY] != -1:
 			if action == 'up' and self.currX > 0:
@@ -292,9 +295,12 @@ class GridWorld:
 
 		# First I'll save the original state the agent is on
 		currStateIdx = self.getCurrentState()
+		goalIdx = self._getStateIndex(self.goalX, self.goalY)
 		# Now I can reset the agent to the state I was told to
 		tempX = self.currX
 		tempY = self.currY
+
+		self.currX, self.currY = self.getStateXY(currState)
 
 		# Now I can ask what will happen next in this new state
 		accum_reward = 0
@@ -303,11 +309,15 @@ class GridWorld:
 		aTerminate = len(actionSet) - 1
 		nextAction = o_pi[currState]
 
-		while nextAction != aTerminate:
+		# I need these contour cases for the termination:
+		if currState == goalIdx:
+			nextStateIdx = self.numStates
+		elif nextAction == aTerminate and self.matrixMDP[self.currX][self.currY] != -1:
+			accum_reward = -1
 
+		while nextAction != aTerminate:
 			nextAction = o_pi[currState]
 			self.currX, self.currY = self.getStateXY(currState)
-
 			if self.rewardFunction == None and self.isTerminal():
 				nextStateIdx = self.numStates
 				nextAction = aTerminate

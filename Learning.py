@@ -144,6 +144,7 @@ class Learning:
 				else: #if it is an option
 					nextS, nextR = self.environment.getNextStateAndRewardFromOption(
 						s, fullActionSet[a], optionsActionSet[a - numberOfPrimitiveActions])
+
 				a_equations[s][nextS] += pi[s][a] * self.gamma
 				b_equations[s] -= pi[s][a] * nextR
 
