@@ -115,18 +115,11 @@ def getExpectedNumberOfStepsFromOption(env):
 	actionSet = env.getActionSet()
 	options, actionSetPerOption = discoverOptions(env)
 
-	# Now I decide which options I want to add to my action set
-	actionSet.append(options[len(options) - 2])
+	# Now I add all options to my action set. Later we decide which ones to use.
+	for i in xrange(len(options)):
+		actionSet.append(options[len(options) - i - 1])
 
-	# I'm going to a matrix encoding the random policy. For each state
-	# I encode the equiprobable policy for primitive actions and options
-	pi = []
-	for i in xrange(numStates):
-		pi.append([])
-		for j in xrange(len(actionSet)):
-			pi[i].append(1.0/float(len(actionSet)))
-
-	return stats.getAvgNumStepsBetweenEveryPoint(pi, actionSet, actionSetPerOption)
+	return stats.getAvgNumStepsBetweenEveryPoint(pi, actionSet, actionSetPerOption, numOptionsToConsider=15)
 
 
 if __name__ == "__main__":
@@ -148,7 +141,7 @@ if __name__ == "__main__":
 	numStates = env.getNumStates()
 	numRows, numCols = env.getGridDimensions()
 
-	testOptionDiscoveryThroughPVFs(env)
+	#testOptionDiscoveryThroughPVFs(env)
 	#testPolicyIteration(env)
 	#testPolicyEvaluation(env)
 
@@ -157,4 +150,4 @@ if __name__ == "__main__":
 
 	stats = MDPStats(gamma, env)
 	#print stats.getAvgNumStepsBetweenEveryPoint(pi, env.getActionSet(),  None)
-	#print getExpectedNumberOfStepsFromOption(env)
+	print getExpectedNumberOfStepsFromOption(env)
