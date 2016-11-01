@@ -144,10 +144,7 @@ def getExpectedNumberOfStepsFromOption(env):
 	env.defineRewardFunction(None) #I need to do this now that I'm done with the PVFs
 	env.resetEnvironment()
 
-	print
-	#print 's\', r\' = ', env.getNextStateAndRewardFromOption(7, options[len(options) - 2], optionsActionSet)
-
-	actionSet.append(options[len(options) - 2])
+	actionSet.append(options[len(options) - 1])
 
 	# I'm going to build a random policy now:
 	pi = []
@@ -162,15 +159,10 @@ def getExpectedNumberOfStepsFromOption(env):
 
 		if goalChanged:
 			bellman = Learning(gamma, env, augmentActionSet=False)
-			#######
-			####### TODO: I just need to change the function below to have an if-clause
-			#######       that states that, if the action is an option, call the other
-			#######       function. Annoyingly, I'll have to change parameters along the way
-			#######
 			expectation = bellman.solveBellmanEquations(pi, actionSet, actionSetPerOption)
 
 			for i in xrange(len(expectation) - 1):
-				sys.stdout.write(str(expectation[i]) + '\t')
+				sys.stdout.write("%.2f\t" % (-1.0 * expectation[i]))
 				if (i + 1) % 5 == 0:
 					print
 			print
