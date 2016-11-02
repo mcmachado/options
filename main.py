@@ -119,7 +119,7 @@ def getExpectedNumberOfStepsFromOption(env):
 	for i in xrange(len(options)):
 		actionSet.append(options[i])
 
-	return stats.getAvgNumStepsBetweenEveryPoint(pi, actionSet, actionSetPerOption, numOptionsToConsider=10)
+	return stats.getAvgNumStepsBetweenEveryPoint(actionSet, actionSetPerOption, numOptionsToConsider=10)
 
 
 if __name__ == "__main__":
@@ -150,4 +150,4 @@ if __name__ == "__main__":
 
 	stats = MDPStats(gamma, env)
 	#print stats.getAvgNumStepsBetweenEveryPoint(pi, env.getActionSet(),  None)
-	print getExpectedNumberOfStepsFromOption(env)
+	getExpectedNumberOfStepsFromOption(env)
