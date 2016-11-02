@@ -73,7 +73,6 @@ class Plotter:
 		plt.savefig(self.outputPath + prefix + 'value_function.png')
 		plt.close()
 
-
 	def plotPolicy(self, policy, prefix):
 		plt.clf()
 		for idx in xrange(len(policy)):
@@ -119,3 +118,19 @@ class Plotter:
 
 		plt.savefig(self.outputPath + prefix + 'policy.png')
 		plt.close()
+
+	def plotLine(self, x_vals, y_vals, x_label, y_label, title, filename=None):
+		plt.clf()
+
+		plt.xlabel(x_label)
+		plt.xlim(((min(x_vals) - 0.5), (max(x_vals) + 0.5)))
+		plt.ylabel(y_label)
+		plt.ylim(((min(y_vals) - 0.5), (max(y_vals) + 0.5)))
+
+		plt.title(title)
+		plt.plot(x_vals, y_vals, c='k', lw=2)
+
+		if filename == None:
+			plt.show()
+		else:
+			plt.savefig(self.outputPath + filename)

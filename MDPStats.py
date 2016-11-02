@@ -8,8 +8,7 @@ import sys
 import math
 import numpy as np
 
-import matplotlib.pylab as plt
-
+from Drawing import Plotter
 from Learning import Learning
 
 class MDPStats:
@@ -17,13 +16,15 @@ class MDPStats:
 	gamma = 0.9
 	numStates = 0
 	actionSet = None
+	outputPath = None
 	environment = None
 
-	def __init__(self, gamma, env, augmentActionSet=False):
+	def __init__(self, gamma, env, outputPath, augmentActionSet=False):
 		'''Initialize variables that are useful everywhere.'''
 		self.gamma = gamma
 		self.environment = env
 		self.numStates = env.getNumStates() + 1
+		self.outputPath = outputPath
 
 
 		if augmentActionSet:
@@ -101,8 +102,12 @@ class MDPStats:
 			toPlot.append(sum(avgs) / float(len(avgs)))
 
 		if numOptionsToConsider > 0:
-			plt.plot(toPlot)
-			plt.show()
+			plt = Plotter(self.outputPath, self.environment)
+			plt.plotLine(xrange(len(toPlot)), toPlot, '# options', 'Avg. # steps',
+				'Avg. # steps between any two points', 'avg_num_steps.pdf')
+
+			#plt.plot(toPlot)
+			#plt.show()
 
 		return toPlot
 

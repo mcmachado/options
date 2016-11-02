@@ -132,6 +132,7 @@ class Learning:
 		# V[s] = \sum \pi(a|s) 1.0 [r + \gamma V[s']] (assuming determinism)
 		# - \sum \pi(a|s) r = -V[s] + \sum \pi(a|s) \gamma V[s']
 		'''
+
 		for s in xrange(self.numStates - 1):
 			a_equations[s][s] = -1
 			for a in xrange(len(pi[s])):

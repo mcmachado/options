@@ -15,7 +15,7 @@ from Utils import Utils
 from Environment import GridWorld
 from MDPStats import MDPStats
 
-def discoverOptions(env, plotGraphs=True):
+def discoverOptions(env, plotGraphs=False):
 	#I'll need this when computing the expected number of steps:
 	options = []
 	actionSetPerOption = []
@@ -148,6 +148,6 @@ if __name__ == "__main__":
 	gamma = 1.0
 	pi = numStates * [[0.25, 0.25, 0.25, 0.25]]
 
-	stats = MDPStats(gamma, env)
+	stats = MDPStats(gamma, env, outputPath)
 	#print stats.getAvgNumStepsBetweenEveryPoint(pi, env.getActionSet(),  None)
 	getExpectedNumberOfStepsFromOption(env)
