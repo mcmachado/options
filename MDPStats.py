@@ -45,7 +45,7 @@ class MDPStats:
 
 		return summation / counter
 
-	def getAvgNumStepsBetweenEveryPoint(self, fullActionSet, optionsActionSet, numOptionsToConsider=0, debug=False):
+	def getAvgNumStepsBetweenEveryPoint(self, fullActionSet, optionsActionSet, initOption = 0, numOptionsToConsider=0, debug=False):
 		''' '''
 		print
 		toPlot = []
@@ -69,7 +69,7 @@ class MDPStats:
 
 				if i > 0:
 					for k in xrange(i): #current number of options to consider
-						if optionsActionSet[i][fullActionSet[numPrimitiveActions + k][j]] == "terminate":
+						if optionsActionSet[i + initOption - 1][fullActionSet[numPrimitiveActions + k + initOption][j]] == "terminate":
 							pi[j].append(0.0)
 						else:
 							pi[j].append(1.0)
@@ -79,7 +79,7 @@ class MDPStats:
 					pi[j][k] = pi[j][k]/denominator
 
 			if i > 0:
-				actionSetToUse.append(fullActionSet[numPrimitiveActions + i - 1])
+				actionSetToUse.append(fullActionSet[numPrimitiveActions + i - 1 + initOption])
 
 			print 'Obtaining shortest paths for ' + str(numPrimitiveActions) + ' primitive actions and ' + str(i) + ' options.'
 			for s in xrange(self.environment.getNumStates()):
