@@ -2,7 +2,6 @@
 This class implements simple gridworlds. It reads a string, or a file containing
 the string, and generates the MDP. I just implemented a tabular representation
 for this class, it is hard to try to propose something else for gridworlds.
-
 Author: Marlos C. Machado
 '''
 import sys
@@ -106,10 +105,17 @@ class GridWorld:
 		nextY = self.currY
 
 		if action == 'terminate':
-			if nextX == self.goalX and nextY == self.goalY:
-				return -1, -1 # absorbing state
+			# In this case we are not discovering options
+			# we are just talking about a general MDP.
+			if self.rewardFunction == None:
+				if nextX == self.goalX and nextY == self.goalY:
+					return -1, -1 # absorbing state
+				else:
+					return self.currX, self.currY
+			# Otherwise we are talking about option discovery,
+			# so when an option terminates it should stop "suffering".
 			else:
-				return self.currX, self.currY
+				return -1, -1 # absorbing state
 
 		if self.matrixMDP[self.currX][self.currY] != -1:
 			if action == 'up' and self.currX > 0:
