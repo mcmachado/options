@@ -15,7 +15,7 @@ from Utils import Utils
 from Environment import GridWorld
 from MDPStats import MDPStats
 
-def discoverOptions(env, plotGraphs=False):
+def discoverOptions(env, discoverNegation=False, plotGraphs=False):
 	#I'll need this when computing the expected number of steps:
 	options = []
 	actionSetPerOption = []
@@ -39,11 +39,29 @@ def discoverOptions(env, plotGraphs=False):
 	normalizedL = expD.dot(L).dot(expD)
 
 	# Eigendecomposition
+	# IMPORTANT: The eigenvectors are in columns
 	eigenvalues, eigenvectors = np.linalg.eig(normalizedL)
 	# I need to sort the eigenvalues and eigenvectors
 	idx = eigenvalues.argsort()[::-1]
 	eigenvalues = eigenvalues[idx]
 	eigenvectors = eigenvectors[:,idx]
+
+	# If I decide to use both directions of the eigenvector, I do it here.
+	# It is easier to just change the list eigenvector, even though it may
+	# not be the most efficient solution. The rest of the code remains the same.
+	if discoverNegation:
+		oldEigenvalues = eigenvalues
+		oldEigenvectors = eigenvectors.T
+		eigenvalues = []
+		eigenvectors = []
+		for i in xrange(len(oldEigenvectors)):
+			eigenvalues.append(oldEigenvalues[i])
+			eigenvalues.append(oldEigenvalues[i])
+			eigenvectors.append(oldEigenvectors[i])
+			eigenvectors.append(-1 * oldEigenvectors[i])
+
+		eigenvalues = np.asarray(eigenvalues)
+		eigenvectors = np.asarray(eigenvectors).T
 
 	if plotGraphs:
 		# Plotting all the basis
@@ -51,7 +69,8 @@ def discoverOptions(env, plotGraphs=False):
 		plot.plotBasisFunctions(eigenvalues, eigenvectors)
 
 	# Now I will define a reward function and solve the MDP for it
-	guard = len(eigenvectors)
+	# I iterate over the columns, not rows. I can index by 0 here.
+	guard = len(eigenvectors[0])
 	for i in xrange(guard):
 		idx = guard - i - 1
 		print 'Solving for eigenvector #' + str(idx)
@@ -107,19 +126,23 @@ def testPolicyIteration(env):
 
 def testOptionDiscoveryThroughPVFs(env):
 	''' Simple test for option discovery through proto-value functions. '''
-	options, actionSetPerOption = discoverOptions(env, plotGraphs=True)
+	options, actionSetPerOption = discoverOptions(env, discoverNegation=True, plotGraphs=True)
 
 def getExpectedNumberOfStepsFromOption(env):
 
 	# We first discover all options
 	actionSet = env.getActionSet()
-	options, actionSetPerOption = discoverOptions(env)
+	options, actionSetPerOption = discoverOptions(env, plotGraphs=True)
 
 	# Now I add all options to my action set. Later we decide which ones to use.
 	for i in xrange(len(options)):
 		actionSet.append(options[i])
 
-	return stats.getAvgNumStepsBetweenEveryPoint(actionSet, actionSetPerOption, numOptionsToConsider=10)
+	#for i in xrange(169):
+	#	print i
+	#	print stats.getAvgNumStepsBetweenEveryPoint(actionSet, actionSetPerOption, initOption=i, numOptionsToConsider=1)
+
+	print stats.getAvgNumStepsBetweenEveryPoint(actionSet, actionSetPerOption, initOption=0, numOptionsToConsider=169)
 
 
 if __name__ == "__main__":
@@ -146,8 +169,5 @@ if __name__ == "__main__":
 	#testPolicyEvaluation(env)
 
 	gamma = 1.0
-	pi = numStates * [[0.25, 0.25, 0.25, 0.25]]
-
 	stats = MDPStats(gamma, env, outputPath)
-	#print stats.getAvgNumStepsBetweenEveryPoint(pi, env.getActionSet(),  None)
 	getExpectedNumberOfStepsFromOption(env)
