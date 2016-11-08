@@ -15,7 +15,7 @@ from Utils import Utils
 from Environment import GridWorld
 from MDPStats import MDPStats
 
-def discoverOptions(env, discoverNegation=False, plotGraphs=False):
+def discoverOptions(env, epsilon=-1, discoverNegation=False, plotGraphs=False):
 	#I'll need this when computing the expected number of steps:
 	options = []
 	actionSetPerOption = []
@@ -78,6 +78,13 @@ def discoverOptions(env, discoverNegation=False, plotGraphs=False):
 		env.defineRewardFunction(eigenvectors[:,idx])
 		V, pi = polIter.solvePolicyIteration()
 
+		# Now I will eliminate any actions that may give us a small improvement.
+		# This is where the epsilon parameter is important. If it is not set all
+		# it will never be considered, since I set it to a very small value
+		for j in xrange(len(V)):
+			if V[j] < epsilon:
+				pi[j] = len(env.getActionSet())
+
 		if plotGraphs:
 			plot.plotValueFunction(V[0:numStates], str(idx) + '_')
 			plot.plotPolicy(pi[0:numStates], str(idx) + '_')
@@ -124,25 +131,37 @@ def testPolicyIteration(env):
 	plot.plotValueFunction(V[0:numStates], 'goal_')
 	plot.plotPolicy(pi[0:numStates], 'goal_')
 
-def testOptionDiscoveryThroughPVFs(env):
+def testOptionDiscoveryThroughPVFs(env, epsilon):
 	''' Simple test for option discovery through proto-value functions. '''
-	options, actionSetPerOption = discoverOptions(env, discoverNegation=True, plotGraphs=True)
+	options, actionSetPerOption = discoverOptions(env, epsilon=epsilon, discoverNegation=True, plotGraphs=True)
 
-def getExpectedNumberOfStepsFromOption(env):
+def getExpectedNumberOfStepsFromOption(env, eps, loadedOptions):
 
 	# We first discover all options
+	options = None
+	actionSetPerOption = None
 	actionSet = env.getActionSet()
-	options, actionSetPerOption = discoverOptions(env, plotGraphs=True)
+
+	if loadedOptions == None:
+		options, actionSetPerOption = discoverOptions(env, epsilon=eps, discoverNegation=True, plotGraphs=True)
+	else:
+		options = loadedOptions
+		actionSetPerOption = []
+		for i in xrange(len(loadedOptions)):
+			tempActionSet = env.getActionSet()
+			tempActionSet.append('terminate')
+			actionSetPerOption.append(tempActionSet)
 
 	# Now I add all options to my action set. Later we decide which ones to use.
 	for i in xrange(len(options)):
 		actionSet.append(options[i])
 
-	#for i in xrange(169):
+	#for i in xrange(4):
 	#	print i
+		#print stats.getAvgNumStepsBetweenEveryPoint(actionSet, actionSetPerOption, initOption=2*i, numOptionsToConsider=1)
 	#	print stats.getAvgNumStepsBetweenEveryPoint(actionSet, actionSetPerOption, initOption=i, numOptionsToConsider=1)
 
-	print stats.getAvgNumStepsBetweenEveryPoint(actionSet, actionSetPerOption, initOption=0, numOptionsToConsider=169)
+	print stats.getAvgNumStepsBetweenEveryPoint(actionSet, actionSetPerOption, initOption=0, numOptionsToConsider=4)
 
 
 if __name__ == "__main__":
@@ -153,21 +172,36 @@ if __name__ == "__main__":
 		help='File containing the MDP definition.')
 	parser.add_argument('-o', '--output', type = str, default = 'graphs/fig1_',
 		help='Prefix that will be used to generate all outputs.')
+	parser.add_argument('-l', '--load', type = str, nargs = '+', default = None,
+		help='List of files that contain the options to be loaded.')
 
 	args = parser.parse_args()
 
 	inputMDP = args.input
 	outputPath = args.output
+	optionsToLoad = args.load
 
 	# Create environment
 	env = GridWorld(path = inputMDP)
 	numStates = env.getNumStates()
 	numRows, numCols = env.getGridDimensions()
 
-	#testOptionDiscoveryThroughPVFs(env)
+	#testOptionDiscoveryThroughPVFs(env, epsilon=0.15)
 	#testPolicyIteration(env)
 	#testPolicyEvaluation(env)
 
+	# I may load options if I'm told so:
+	loadedOptions = []
+	if optionsToLoad != None:
+		for i in xrange(len(optionsToLoad)):
+			loadedOptions.append(Utils.loadOption(optionsToLoad[i]))
+			plot = Plotter(outputPath, env)
+			plot.plotPolicy(loadedOptions[i], str(i+1) + '_')
+
 	gamma = 1.0
 	stats = MDPStats(gamma, env, outputPath)
-	getExpectedNumberOfStepsFromOption(env)
+
+	if optionsToLoad == None:
+		print getExpectedNumberOfStepsFromOption(env, eps=0.05)
+	else:
+		print getExpectedNumberOfStepsFromOption(env, eps=0.05, loadedOptions=loadedOptions)
