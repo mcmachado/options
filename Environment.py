@@ -165,7 +165,8 @@ class GridWorld:
 		# termination. After termination this function is not called anymore,
 		# thus we can just return 0 elsewhere in the code.
 		if self.rewardFunction == None:
-			if self.matrixMDP[nextX][nextY] == -1 or self._getStateIndex(nextX, nextY) == self.numStates:
+			if self.matrixMDP[nextX][nextY] == -1 \
+				or self._getStateIndex(nextX, nextY) == self.numStates:
 				return 0
 			else:
 				return -1
@@ -318,7 +319,8 @@ class GridWorld:
 		# I need these contour cases for the termination:
 		if currState == goalIdx:
 			nextStateIdx = self.numStates
-		elif nextAction == aTerminate and self.matrixMDP[self.currX][self.currY] != -1:
+		elif nextAction == aTerminate and \
+			self.matrixMDP[self.currX][self.currY] != -1:
 			accum_reward = -1
 
 		while nextAction != aTerminate:
@@ -330,8 +332,10 @@ class GridWorld:
 				reward = 0
 			else:
 				nextX, nextY = self._getNextState(actionSet[nextAction])
-				if nextX != -1 and nextY != -1: # If it is not the absorbing state:
-					reward = self._getNextReward(self.currX, self.currY, nextAction, nextX, nextY)
+				# If it is not the absorbing state:
+				if nextX != -1 and nextY != -1:
+					reward = self._getNextReward(
+						self.currX, self.currY, nextAction, nextX, nextY)
 					nextStateIdx = self._getStateIndex(nextX, nextY)
 				else:
 					reward = 0

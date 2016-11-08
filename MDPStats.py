@@ -45,7 +45,8 @@ class MDPStats:
 
 		return summation / counter
 
-	def getAvgNumStepsBetweenEveryPoint(self, fullActionSet, optionsActionSet, initOption = 0, numOptionsToConsider=0, debug=False):
+	def getAvgNumStepsBetweenEveryPoint(self, fullActionSet, optionsActionSet,
+		initOption = 0, numOptionsToConsider=0, debug=False):
 		''' '''
 		print
 		toPlot = []
@@ -56,10 +57,11 @@ class MDPStats:
 		for i in xrange(numOptionsToConsider + 1):
 			avgs = []
 
-			# I'm going to use a matrix encoding the random policy. For each state
-			# I encode the equiprobable policy for primitive actions and options
-			# However, I need to add the condition that, if the option's policy says
-			# terminate, it should have probability zero for the equiprobable policy.
+			# I'm going to use a matrix encoding the random policy. For each
+			# state I encode the equiprobable policy for primitive actions and
+			# options. However, I need to add the condition that, if the
+			# option's policy says terminate, it should have probability zero
+			# for the equiprobable policy.
 			pi = []
 			for j in xrange(self.numStates - 1):
 				pi.append([])
@@ -69,7 +71,10 @@ class MDPStats:
 
 				if i > 0:
 					for k in xrange(i): #current number of options to consider
-						if optionsActionSet[i + initOption - 1][fullActionSet[numPrimitiveActions + k + initOption][j]] == "terminate":
+						idx1 = i + initOption - 1
+						idx2 = numPrimitiveActions + k + initOption
+						nAction = optionsActionSet[idx1][fullActionSet[idx2][j]]
+						if nAction == "terminate":
 							pi[j].append(0.0)
 						else:
 							pi[j].append(1.0)
@@ -79,16 +84,19 @@ class MDPStats:
 					pi[j][k] = pi[j][k]/denominator
 
 			if i > 0:
-				actionSetToUse.append(fullActionSet[numPrimitiveActions + i - 1 + initOption])
+				actionSetToUse.append(
+					fullActionSet[numPrimitiveActions + i - 1 + initOption])
 
-			print 'Obtaining shortest paths for ' + str(numPrimitiveActions) + ' primitive actions and ' + str(i) + ' options.'
+			print 'Obtaining shortest paths for ' + str(numPrimitiveActions) \
+				+ ' primitive actions and ' + str(i) + ' options.'
 			for s in xrange(self.environment.getNumStates()):
 				goalChanged = self.environment.defineGoalState(s)
 
 				if goalChanged:
 					bellman = Learning(
 						self.gamma, self.environment, augmentActionSet=False)
-					expectation = bellman.solveBellmanEquations(pi, actionSetToUse, optionsActionSet)
+					expectation = bellman.solveBellmanEquations(
+						pi, actionSetToUse, optionsActionSet)
 
 					if debug:
 						for j in xrange(len(expectation) - 1):
@@ -103,8 +111,9 @@ class MDPStats:
 
 		if numOptionsToConsider > 0:
 			plt = Plotter(self.outputPath, self.environment)
-			plt.plotLine(xrange(len(toPlot)), toPlot, '# options', 'Avg. # steps',
-				'Avg. # steps between any two points', 'avg_num_steps.pdf')
+			plt.plotLine(xrange(len(toPlot)), toPlot, '# options',
+				'Avg. # steps', 'Avg. # steps between any two points',
+				'avg_num_steps.pdf')
 
 			#plt.plot(toPlot)
 			#plt.show()

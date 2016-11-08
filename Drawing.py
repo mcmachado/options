@@ -89,11 +89,13 @@ class Plotter:
 			elif policy[idx] == 3: #left
 				dx = -0.35
 			elif self.matrixMDP[i][j] != -1 and policy[idx] == 4: # termination
-				circle = plt.Circle((j + 0.5, self.numRows - i + 0.5 - 1), 0.025, color='k')
+				circle = plt.Circle(
+					(j + 0.5, self.numRows - i + 0.5 - 1), 0.025, color='k')
 				plt.gca().add_artist(circle)
 
 			if self.matrixMDP[i][j] != -1:
-				plt.arrow(j + 0.5, self.numRows - i + 0.5 - 1, dx, dy, head_width=0.05, head_length=0.05, fc='k', ec='k')
+				plt.arrow(j + 0.5, self.numRows - i + 0.5 - 1, dx, dy,
+					head_width=0.05, head_length=0.05, fc='k', ec='k')
 			else:
 				plt.gca().add_patch(
 					patches.Rectangle(
@@ -125,10 +127,12 @@ class Plotter:
 		plt.xlabel(x_label)
 		plt.xlim(((min(x_vals) - 0.5), (max(x_vals) + 0.5)))
 		plt.ylabel(y_label)
-		plt.ylim(((min(y_vals) - 0.5), (max(y_vals) + 0.5)))
+		#plt.ylim(((min(y_vals) - 0.5), (max(y_vals) + 0.5)))
+		#plt.ylim((600, 45000))
 
 		plt.title(title)
 		plt.plot(x_vals, y_vals, c='k', lw=2)
+		plt.plot(x_vals, len(x_vals) * [620.7691128573199], c='r', lw=2)
 
 		if filename == None:
 			plt.show()

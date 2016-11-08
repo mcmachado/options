@@ -94,7 +94,8 @@ def discoverOptions(env, epsilon=-1, discoverNegation=False, plotGraphs=False):
 		optionsActionSet.append('terminate')
 		actionSetPerOption.append(optionsActionSet)
 
-	env.defineRewardFunction(None) #I need to do this now that I'm done with the PVFs
+	#I need to do this after I'm done with the PVFs:
+	env.defineRewardFunction(None)
 	env.resetEnvironment()
 
 	return options, actionSetPerOption
@@ -135,7 +136,7 @@ def testOptionDiscoveryThroughPVFs(env, epsilon):
 	''' Simple test for option discovery through proto-value functions. '''
 	options, actionSetPerOption = discoverOptions(env, epsilon=epsilon, discoverNegation=True, plotGraphs=True)
 
-def getExpectedNumberOfStepsFromOption(env, eps, loadedOptions):
+def getExpectedNumberOfStepsFromOption(env, eps, loadedOptions=None):
 
 	# We first discover all options
 	options = None
@@ -143,7 +144,8 @@ def getExpectedNumberOfStepsFromOption(env, eps, loadedOptions):
 	actionSet = env.getActionSet()
 
 	if loadedOptions == None:
-		options, actionSetPerOption = discoverOptions(env, epsilon=eps, discoverNegation=True, plotGraphs=True)
+		options, actionSetPerOption = discoverOptions(env, 
+			epsilon=eps, discoverNegation=True, plotGraphs=True)
 	else:
 		options = loadedOptions
 		actionSetPerOption = []
@@ -158,19 +160,22 @@ def getExpectedNumberOfStepsFromOption(env, eps, loadedOptions):
 
 	#for i in xrange(4):
 	#	print i
-		#print stats.getAvgNumStepsBetweenEveryPoint(actionSet, actionSetPerOption, initOption=2*i, numOptionsToConsider=1)
-	#	print stats.getAvgNumStepsBetweenEveryPoint(actionSet, actionSetPerOption, initOption=i, numOptionsToConsider=1)
+	#	print stats.getAvgNumStepsBetweenEveryPoint(actionSet,
+	#		actionSetPerOption, initOption=2*i, numOptionsToConsider=1)
+	#	print stats.getAvgNumStepsBetweenEveryPoint(actionSet,
+	#		actionSetPerOption, initOption=i, numOptionsToConsider=1)
 
-	print stats.getAvgNumStepsBetweenEveryPoint(actionSet, actionSetPerOption, initOption=0, numOptionsToConsider=4)
+	print stats.getAvgNumStepsBetweenEveryPoint(actionSet,
+		actionSetPerOption, initOption=0, numOptionsToConsider=4)
 
 
 if __name__ == "__main__":
 	# Parse command line
 	parser = argparse.ArgumentParser(
 		description='Obtain proto-value functions, options, graphs, etc.')
-	parser.add_argument('-i', '--input', type = str, default = 'mdps/fig1.mdp',
+	parser.add_argument('-i', '--input', type = str, default = 'mdps/toy.mdp',
 		help='File containing the MDP definition.')
-	parser.add_argument('-o', '--output', type = str, default = 'graphs/fig1_',
+	parser.add_argument('-o', '--output', type = str, default = 'graphs/toy_',
 		help='Prefix that will be used to generate all outputs.')
 	parser.add_argument('-l', '--load', type = str, nargs = '+', default = None,
 		help='List of files that contain the options to be loaded.')
@@ -204,4 +209,5 @@ if __name__ == "__main__":
 	if optionsToLoad == None:
 		print getExpectedNumberOfStepsFromOption(env, eps=0.05)
 	else:
-		print getExpectedNumberOfStepsFromOption(env, eps=0.05, loadedOptions=loadedOptions)
+		print getExpectedNumberOfStepsFromOption(env,
+			eps=0.05, loadedOptions=loadedOptions)

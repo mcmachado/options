@@ -139,12 +139,14 @@ class Learning:
 				nextS = -1
 				nextR = -1
 
-				if isinstance(fullActionSet[a], basestring): #if it is a primitive action
+				#If it is a primitive action
+				if isinstance(fullActionSet[a], basestring):
 					nextS, nextR = self.environment.getNextStateAndReward(
 						s, fullActionSet[a])
 				else: #if it is an option
 					nextS, nextR = self.environment.getNextStateAndRewardFromOption(
-						s, fullActionSet[a], optionsActionSet[a - numberOfPrimitiveActions])
+						s, fullActionSet[a],
+						optionsActionSet[a - numberOfPrimitiveActions])
 
 				a_equations[s][nextS] += pi[s][a] * self.gamma
 				b_equations[s] -= pi[s][a] * nextR
