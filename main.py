@@ -168,15 +168,28 @@ def getExpectedNumberOfStepsFromOption(env, eps, verbose,
 	for i in xrange(len(options)):
 		actionSet.append(options[i])
 
-	#for i in xrange(4):
-	#	print i
-	#	print stats.getAvgNumStepsBetweenEveryPoint(actionSet,
-	#		actionSetPerOption, verbose, initOption=2*i, numOptionsToConsider=1)
-	#	print stats.getAvgNumStepsBetweenEveryPoint(actionSet,
-	#		actionSetPerOption, verbose, initOption=i, numOptionsToConsider=1)
+	if discoverNegation:
+		numOptions = 2*env.getNumStates()
+	else:
+		numOptions = env.getNumStates()
 
+	if discoverNegation:
+		for i in xrange(numOptions/2):
+			print 'Random, Option ' + str(i + 1) + ': ' + \
+			str(stats.getAvgNumStepsBetweenEveryPoint(actionSet,
+				actionSetPerOption, verbose, initOption=2*i,
+				numOptionsToConsider=2))
+	else:
+		for i in xrange(numOptions):
+			print 'Random, Option ' + str(i + 1) + ': ' + \
+			str(stats.getAvgNumStepsBetweenEveryPoint(actionSet,
+				actionSetPerOption, verbose, initOption=i,
+				numOptionsToConsider=1))
+
+	print 'Average number of steps between any two states as we add options:'
 	print stats.getAvgNumStepsBetweenEveryPoint(actionSet,
-		actionSetPerOption, verbose, initOption=0, numOptionsToConsider=4)
+		actionSetPerOption, verbose, initOption=0,
+		numOptionsToConsider=numOptions)
 
 if __name__ == "__main__":
 
