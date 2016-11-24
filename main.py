@@ -175,21 +175,25 @@ def getExpectedNumberOfStepsFromOption(env, eps, verbose,
 
 	if discoverNegation:
 		for i in xrange(numOptions/2):
-			print 'Random, Option ' + str(i + 1) + ': ' + \
-			str(stats.getAvgNumStepsBetweenEveryPoint(actionSet,
-				actionSetPerOption, verbose, initOption=2*i,
-				numOptionsToConsider=2))
+			listToPrint = stats.getAvgNumStepsBetweenEveryPoint(actionSet,
+				actionSetPerOption, verbose, initOption=i*2,
+				numOptionsToConsider=2)
+			myFormattedList = [ '%.2f' % elem for elem in listToPrint ]
+			print 'Random, Option ' + str(i + 1) + ': ' + str(myFormattedList)
 	else:
 		for i in xrange(numOptions):
-			print 'Random, Option ' + str(i + 1) + ': ' + \
-			str(stats.getAvgNumStepsBetweenEveryPoint(actionSet,
+			listToPrint = stats.getAvgNumStepsBetweenEveryPoint(actionSet,
 				actionSetPerOption, verbose, initOption=i,
-				numOptionsToConsider=1))
+				numOptionsToConsider=1)
+			myFormattedList = [ '%.2f' % elem for elem in listToPrint ]
+			print 'Random, Option ' + str(i + 1) + ': ' + str(myFormattedList)
 
 	print 'Average number of steps between any two states as we add options:'
-	print stats.getAvgNumStepsBetweenEveryPoint(actionSet,
+	listToPrint = stats.getAvgNumStepsBetweenEveryPoint(actionSet,
 		actionSetPerOption, verbose, initOption=0,
 		numOptionsToConsider=numOptions)
+	myFormattedList = [ '%.2f' % elem for elem in listToPrint ]
+	print myFormattedList
 
 if __name__ == "__main__":
 
