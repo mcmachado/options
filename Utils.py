@@ -94,6 +94,9 @@ class ArgsParser:
 		parser.add_argument('-l', '--load', type = str, nargs = '+', default = None,
 			help='List of files that contain the options to be loaded.')
 
+		parser.add_argument('-e', '--epsilon', type = float, nargs = '+', default = 0,
+			help='Epsilon threshold to define options\' termination condition.')
+
 		args = parser.parse_args()
 
 		return args

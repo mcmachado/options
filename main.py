@@ -177,6 +177,7 @@ if __name__ == "__main__":
 	args = ArgsParser.readInputArgs()
 
 	taskToPerform = args.task
+	epsilon = args.epsilon
 	inputMDP = args.input
 	outputPath = args.output
 	optionsToLoad = args.load
@@ -196,7 +197,7 @@ if __name__ == "__main__":
 			plot.plotPolicy(loadedOptions[i], str(i+1) + '_')
 
 	if taskToPerform == 1:
-		optionDiscoveryThroughPVFs(env, epsilon=0.0)
+		optionDiscoveryThroughPVFs(env, epsilon=epsilon)
 	elif taskToPerform == 2:
 		policyIteration(env)
 	elif taskToPerform == 3:
@@ -205,5 +206,5 @@ if __name__ == "__main__":
 	elif taskToPerform == 4:
 		gamma = 1.0
 		stats = MDPStats(gamma, env, outputPath)
-		getExpectedNumberOfStepsFromOption(env, eps=0.05,
+		getExpectedNumberOfStepsFromOption(env, eps=epsilon,
 			loadedOptions=loadedOptions)
