@@ -7,11 +7,11 @@ Author: Marlos C. Machado
 '''
 import sys
 import numpy as np
-import argparse
 
 from Learning import Learning
 from Drawing import Plotter
 from Utils import Utils
+from Utils import ArgsParser
 from Environment import GridWorld
 from MDPStats import MDPStats
 
@@ -104,17 +104,18 @@ def testPolicyEvaluation(env):
 	''' Simple test for policy evaluation '''
 
 	pi = numStates * [[0.25, 0.25, 0.25, 0.25]]
+	actionSet = env.getActionSet()
 
 	#This solution is slower and it does not work for gamma = 1
 	#polEval = Learning(0.9999, env, augmentActionSet=False)
 	#expectation = polEval.solvePolicyEvaluation(pi)
 
 	bellman = Learning(1, env, augmentActionSet=False)
-	expectation = bellman.solveBellmanEquations(pi)
+	expectation = bellman.solveBellmanEquations(pi, actionSet, None)
 
 	for i in xrange(len(expectation) - 1):
 		sys.stdout.write(str(expectation[i]) + '\t')
-		if (i + 1) % 4 == 0:
+		if (i + 1) % env.numCols == 0:
 			print
 	print
 
@@ -134,7 +135,8 @@ def testPolicyIteration(env):
 
 def testOptionDiscoveryThroughPVFs(env, epsilon):
 	''' Simple test for option discovery through proto-value functions. '''
-	options, actionSetPerOption = discoverOptions(env, epsilon=epsilon, discoverNegation=True, plotGraphs=True)
+	options, actionSetPerOption = discoverOptions(env,
+		epsilon=epsilon, discoverNegation=True, plotGraphs=True)
 
 def getExpectedNumberOfStepsFromOption(env, eps, loadedOptions=None):
 
@@ -170,18 +172,11 @@ def getExpectedNumberOfStepsFromOption(env, eps, loadedOptions=None):
 
 
 if __name__ == "__main__":
-	# Parse command line
-	parser = argparse.ArgumentParser(
-		description='Obtain proto-value functions, options, graphs, etc.')
-	parser.add_argument('-i', '--input', type = str, default = 'mdps/toy.mdp',
-		help='File containing the MDP definition.')
-	parser.add_argument('-o', '--output', type = str, default = 'graphs/toy_',
-		help='Prefix that will be used to generate all outputs.')
-	parser.add_argument('-l', '--load', type = str, nargs = '+', default = None,
-		help='List of files that contain the options to be loaded.')
 
-	args = parser.parse_args()
+	#Read input arguments
+	args = ArgsParser.readInputArgs()
 
+	taskToPerform = args.task
 	inputMDP = args.input
 	outputPath = args.output
 	optionsToLoad = args.load
@@ -191,23 +186,24 @@ if __name__ == "__main__":
 	numStates = env.getNumStates()
 	numRows, numCols = env.getGridDimensions()
 
-	#testOptionDiscoveryThroughPVFs(env, epsilon=0.15)
-	#testPolicyIteration(env)
-	#testPolicyEvaluation(env)
-
 	# I may load options if I'm told so:
-	loadedOptions = []
+	loadedOptions = None
 	if optionsToLoad != None:
+		loadedOptions = []
 		for i in xrange(len(optionsToLoad)):
 			loadedOptions.append(Utils.loadOption(optionsToLoad[i]))
 			plot = Plotter(outputPath, env)
 			plot.plotPolicy(loadedOptions[i], str(i+1) + '_')
 
-	gamma = 1.0
-	stats = MDPStats(gamma, env, outputPath)
-
-	if optionsToLoad == None:
-		print getExpectedNumberOfStepsFromOption(env, eps=0.05)
-	else:
-		print getExpectedNumberOfStepsFromOption(env,
-			eps=0.05, loadedOptions=loadedOptions)
+	if taskToPerform == 1:
+		testOptionDiscoveryThroughPVFs(env, epsilon=0.0)
+	elif taskToPerform == 2:
+		testPolicyIteration(env)
+	elif taskToPerform == 3:
+		#TODO: I should allow one to evaluate a loaded policy
+		testPolicyEvaluation(env)
+	elif taskToPerform == 4:
+		gamma = 1.0
+		stats = MDPStats(gamma, env, outputPath)
+		getExpectedNumberOfStepsFromOption(env, eps=0.05,
+			loadedOptions=loadedOptions)

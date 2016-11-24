@@ -183,6 +183,7 @@ class GridWorld:
 		return reward
 
 	def resetEnvironment(self):
+		''' Resets the agent to its initial position.'''
 		self.currX = self.startX
 		self.currY = self.startY
 
@@ -279,7 +280,8 @@ class GridWorld:
 		else:
 			nextX, nextY = self._getNextState(action)
 			if nextX != -1 and nextY != -1: # If it is not the absorbing state:
-				reward = self._getNextReward(self.currX, self.currY, action, nextX, nextY)
+				reward = self._getNextReward(
+					self.currX, self.currY, action, nextX, nextY)
 				nextStateIdx = self._getStateIndex(nextX, nextY)
 			else:
 				reward = 0

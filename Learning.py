@@ -121,6 +121,9 @@ class Learning:
 		return self.V
 
 	def solveBellmanEquations(self, pi, fullActionSet, optionsActionSet):
+		''' This method generates the Bellman equations using the model
+			available in self.environment and solves the generated set of
+			linear equations.'''
 
 		numberOfPrimitiveActions = 4
 		# ax = b
@@ -132,7 +135,6 @@ class Learning:
 		# V[s] = \sum \pi(a|s) 1.0 [r + \gamma V[s']] (assuming determinism)
 		# - \sum \pi(a|s) r = -V[s] + \sum \pi(a|s) \gamma V[s']
 		'''
-
 		for s in xrange(self.numStates - 1):
 			a_equations[s][s] = -1
 			for a in xrange(len(pi[s])):

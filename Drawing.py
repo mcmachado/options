@@ -53,8 +53,7 @@ class Plotter:
 		plt.savefig(self.outputPath + 'eigenvalues.png')
 
 	def plotValueFunction(self, valueFunction, prefix):
-
-		'''3d plot of a value function.''' 
+		'''3d plot of a value function.'''
 		fig, ax = plt.subplots(subplot_kw = dict(projection = '3d'))
 		X, Y = np.meshgrid(np.arange(self.numCols), np.arange(self.numRows))
 		Z = valueFunction.reshape(self.numRows, self.numCols)
