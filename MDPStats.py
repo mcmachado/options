@@ -110,14 +110,3 @@ class MDPStats:
 				'avg_num_steps.pdf')
 
 		return toPlot
-
-	'''
-	TODO:
-		-- An option is not available in the termination condition
-			-- To fix it is probably enough to define prob 0 for these states
-		- Implement threshold for the initiation set. This should be easy to add
-		- Support random behavior after the policy is over. To do so, we may
-		  need to implement a monte-carlo method to estimate the probability an
-		  option will terminate at each state. Then we would return (r, s', p)
-		  for the Bellman equations.
-	'''
