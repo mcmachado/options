@@ -126,12 +126,11 @@ class Plotter:
 		plt.xlabel(x_label)
 		plt.xlim(((min(x_vals) - 0.5), (max(x_vals) + 0.5)))
 		plt.ylabel(y_label)
-		#plt.ylim(((min(y_vals) - 0.5), (max(y_vals) + 0.5)))
-		#plt.ylim((600, 45000))
+		plt.ylim(((min(y_vals) - 0.5), (max(y_vals) + 0.5)))
 
 		plt.title(title)
 		plt.plot(x_vals, y_vals, c='k', lw=2)
-		plt.plot(x_vals, len(x_vals) * [620.7691128573199], c='r', lw=2)
+		#plt.plot(x_vals, len(x_vals) * y_vals[0], c='r', lw=2)
 
 		if filename == None:
 			plt.show()

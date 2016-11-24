@@ -6,6 +6,7 @@ given a reward function, and plotting options and basis functions.
 Author: Marlos C. Machado
 '''
 import sys
+import warnings
 import numpy as np
 
 from Learning import Learning
@@ -15,7 +16,7 @@ from Utils import ArgsParser
 from Environment import GridWorld
 from MDPStats import MDPStats
 
-def discoverOptions(env, epsilon=-1, discoverNegation=False, plotGraphs=False):
+def discoverOptions(env, epsilon, verbose, discoverNegation, plotGraphs=False):
 	#I'll need this when computing the expected number of steps:
 	options = []
 	actionSetPerOption = []
@@ -73,7 +74,8 @@ def discoverOptions(env, epsilon=-1, discoverNegation=False, plotGraphs=False):
 	guard = len(eigenvectors[0])
 	for i in xrange(guard):
 		idx = guard - i - 1
-		print 'Solving for eigenvector #' + str(idx)
+		if verbose:
+			print 'Solving for eigenvector #' + str(idx)
 		polIter = Learning(0.9, env, augmentActionSet=True)
 		env.defineRewardFunction(eigenvectors[:,idx])
 		V, pi = polIter.solvePolicyIteration()
@@ -133,12 +135,14 @@ def policyIteration(env):
 	plot.plotValueFunction(V[0:numStates], 'goal_')
 	plot.plotPolicy(pi[0:numStates], 'goal_')
 
-def optionDiscoveryThroughPVFs(env, epsilon):
+def optionDiscoveryThroughPVFs(env, epsilon, verbose, discoverNegation):
 	''' Simple test for option discovery through proto-value functions. '''
 	options, actionSetPerOption = discoverOptions(env,
-		epsilon=epsilon, discoverNegation=True, plotGraphs=True)
+		epsilon=epsilon, verbose=verbose,
+		discoverNegation=discoverNegation, plotGraphs=True)
 
-def getExpectedNumberOfStepsFromOption(env, eps, loadedOptions=None):
+def getExpectedNumberOfStepsFromOption(env, eps, verbose,
+	discoverNegation, loadedOptions=None):
 
 	# We first discover all options
 	options = None
@@ -146,8 +150,12 @@ def getExpectedNumberOfStepsFromOption(env, eps, loadedOptions=None):
 	actionSet = env.getActionSet()
 
 	if loadedOptions == None:
-		options, actionSetPerOption = discoverOptions(env, 
-			epsilon=eps, discoverNegation=True, plotGraphs=True)
+		if verbose:
+			options, actionSetPerOption = discoverOptions(env, eps, verbose,
+				discoverNegation, plotGraphs=True)
+		else:
+			options, actionSetPerOption = discoverOptions(env, eps, verbose,
+				discoverNegation, plotGraphs=False)
 	else:
 		options = loadedOptions
 		actionSetPerOption = []
@@ -163,13 +171,12 @@ def getExpectedNumberOfStepsFromOption(env, eps, loadedOptions=None):
 	#for i in xrange(4):
 	#	print i
 	#	print stats.getAvgNumStepsBetweenEveryPoint(actionSet,
-	#		actionSetPerOption, initOption=2*i, numOptionsToConsider=1)
+	#		actionSetPerOption, verbose, initOption=2*i, numOptionsToConsider=1)
 	#	print stats.getAvgNumStepsBetweenEveryPoint(actionSet,
-	#		actionSetPerOption, initOption=i, numOptionsToConsider=1)
+	#		actionSetPerOption, verbose, initOption=i, numOptionsToConsider=1)
 
 	print stats.getAvgNumStepsBetweenEveryPoint(actionSet,
-		actionSetPerOption, initOption=0, numOptionsToConsider=4)
-
+		actionSetPerOption, verbose, initOption=0, numOptionsToConsider=4)
 
 if __name__ == "__main__":
 
@@ -178,9 +185,14 @@ if __name__ == "__main__":
 
 	taskToPerform = args.task
 	epsilon = args.epsilon
+	verbose = args.verbose
 	inputMDP = args.input
 	outputPath = args.output
 	optionsToLoad = args.load
+	bothDirections = args.both
+
+	if not verbose:
+		warnings.filterwarnings('ignore')
 
 	# Create environment
 	env = GridWorld(path = inputMDP)
@@ -197,7 +209,8 @@ if __name__ == "__main__":
 			plot.plotPolicy(loadedOptions[i], str(i+1) + '_')
 
 	if taskToPerform == 1:
-		optionDiscoveryThroughPVFs(env, epsilon=epsilon)
+		optionDiscoveryThroughPVFs(env, epsilon=epsilon, verbose=verbose,
+			discoverNegation=bothDirections)
 	elif taskToPerform == 2:
 		policyIteration(env)
 	elif taskToPerform == 3:
@@ -206,5 +219,5 @@ if __name__ == "__main__":
 	elif taskToPerform == 4:
 		gamma = 1.0
 		stats = MDPStats(gamma, env, outputPath)
-		getExpectedNumberOfStepsFromOption(env, eps=epsilon,
-			loadedOptions=loadedOptions)
+		getExpectedNumberOfStepsFromOption(env, epsilon, verbose,
+			bothDirections, loadedOptions=loadedOptions)

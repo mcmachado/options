@@ -46,9 +46,8 @@ class MDPStats:
 		return summation / counter
 
 	def getAvgNumStepsBetweenEveryPoint(self, fullActionSet, optionsActionSet,
-		initOption = 0, numOptionsToConsider=0, debug=False):
+		verbose, initOption = 0, numOptionsToConsider=0):
 		''' '''
-		print
 		toPlot = []
 		numPrimitiveActions = 4
 
@@ -87,8 +86,10 @@ class MDPStats:
 				actionSetToUse.append(
 					fullActionSet[numPrimitiveActions + i - 1 + initOption])
 
-			print 'Obtaining shortest paths for ' + str(numPrimitiveActions) \
-				+ ' primitive actions and ' + str(i) + ' options.'
+			if verbose:
+				print 'Obtaining shortest paths for ' + str(numPrimitiveActions) \
+					+ ' primitive actions and ' + str(i) + ' options.'
+
 			for s in xrange(self.environment.getNumStates()):
 				goalChanged = self.environment.defineGoalState(s)
 
@@ -97,13 +98,6 @@ class MDPStats:
 						self.gamma, self.environment, augmentActionSet=False)
 					expectation = bellman.solveBellmanEquations(
 						pi, actionSetToUse, optionsActionSet)
-
-					if debug:
-						for j in xrange(len(expectation) - 1):
-							sys.stdout.write("%.2f\t" % (-1.0 * expectation[j]))
-							if (j + 1) % 5 == 0:
-								print
-						print
 
 					avgs.append(self._computeAvgOnMDP((-1.0 * expectation)))
 
@@ -114,9 +108,6 @@ class MDPStats:
 			plt.plotLine(xrange(len(toPlot)), toPlot, '# options',
 				'Avg. # steps', 'Avg. # steps between any two points',
 				'avg_num_steps.pdf')
-
-			#plt.plot(toPlot)
-			#plt.show()
 
 		return toPlot
 

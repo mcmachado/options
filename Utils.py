@@ -94,8 +94,17 @@ class ArgsParser:
 		parser.add_argument('-l', '--load', type = str, nargs = '+', default = None,
 			help='List of files that contain the options to be loaded.')
 
-		parser.add_argument('-e', '--epsilon', type = float, nargs = '+', default = 0,
+		parser.add_argument('-e', '--epsilon', type = float, default = 0,
 			help='Epsilon threshold to define options\' termination condition.')
+
+		parser.add_argument('-b', '--both', action='store_true', default = False,
+			help='When discovering options, we should use both directions of ' +
+			'the eigenvectors (positive and negative).')
+
+		parser.add_argument('-v', '--verbose', action='store_true', default=False,
+			help='Verbose output. If not set, intermediate printing information' +
+			' is suppressed. When using this option with -v=4, no graphs are ' +
+			' plotted.')
 
 		args = parser.parse_args()
 
