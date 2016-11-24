@@ -100,7 +100,7 @@ def discoverOptions(env, epsilon=-1, discoverNegation=False, plotGraphs=False):
 
 	return options, actionSetPerOption
 
-def testPolicyEvaluation(env):
+def policyEvaluation(env):
 	''' Simple test for policy evaluation '''
 
 	pi = numStates * [[0.25, 0.25, 0.25, 0.25]]
@@ -119,7 +119,7 @@ def testPolicyEvaluation(env):
 			print
 	print
 
-def testPolicyIteration(env):
+def policyIteration(env):
 	''' Simple test for policy iteration '''
 
 	polIter = Learning(0.9, env, augmentActionSet=False)
@@ -133,7 +133,7 @@ def testPolicyIteration(env):
 	plot.plotValueFunction(V[0:numStates], 'goal_')
 	plot.plotPolicy(pi[0:numStates], 'goal_')
 
-def testOptionDiscoveryThroughPVFs(env, epsilon):
+def optionDiscoveryThroughPVFs(env, epsilon):
 	''' Simple test for option discovery through proto-value functions. '''
 	options, actionSetPerOption = discoverOptions(env,
 		epsilon=epsilon, discoverNegation=True, plotGraphs=True)
@@ -196,12 +196,12 @@ if __name__ == "__main__":
 			plot.plotPolicy(loadedOptions[i], str(i+1) + '_')
 
 	if taskToPerform == 1:
-		testOptionDiscoveryThroughPVFs(env, epsilon=0.0)
+		optionDiscoveryThroughPVFs(env, epsilon=0.0)
 	elif taskToPerform == 2:
-		testPolicyIteration(env)
+		policyIteration(env)
 	elif taskToPerform == 3:
 		#TODO: I should allow one to evaluate a loaded policy
-		testPolicyEvaluation(env)
+		policyEvaluation(env)
 	elif taskToPerform == 4:
 		gamma = 1.0
 		stats = MDPStats(gamma, env, outputPath)
