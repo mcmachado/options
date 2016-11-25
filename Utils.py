@@ -83,7 +83,8 @@ class ArgsParser:
 			'1: Discover options; ' +
 			'2: Solve for a given goal (policy iteration); ' +
 			'3: Evaluate random policy (policy evaluation); ' +
-			'4: Compute the average number of time steps between any two states;')
+			'4: Compute the average number of time steps between any two states;' +
+			'5: Solve for a given goal (q-learning).')
 
 		parser.add_argument('-i', '--input', type = str, default = 'mdps/toy.mdp',
 			help='File containing the MDP definition.')

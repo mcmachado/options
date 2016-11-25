@@ -182,7 +182,7 @@ class GridWorld:
 
 		return reward
 
-	def resetEnvironment(self):
+	def reset(self):
 		''' Resets the agent to its initial position.'''
 		self.currX = self.startX
 		self.currY = self.startY

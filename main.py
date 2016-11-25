@@ -8,6 +8,7 @@ Author: Marlos C. Machado
 import sys
 import warnings
 import numpy as np
+import matplotlib.pylab as plt
 
 from Learning import Learning
 from Drawing import Plotter
@@ -15,6 +16,8 @@ from Utils import Utils
 from Utils import ArgsParser
 from Environment import GridWorld
 from MDPStats import MDPStats
+
+from QLearning import QLearning
 
 def discoverOptions(env, epsilon, verbose, discoverNegation, plotGraphs=False):
 	#I'll need this when computing the expected number of steps:
@@ -238,3 +241,14 @@ if __name__ == "__main__":
 		stats = MDPStats(gamma, env, outputPath)
 		getExpectedNumberOfStepsFromOption(env, epsilon, verbose,
 			bothDirections, loadedOptions=loadedOptions)
+	elif taskToPerform == 5:
+		returns = []
+		learner = QLearning(0.9, 0.1, 0.05, env)
+		for i in xrange(1000):
+			returns.append(learner.learnOneEpisode(timestepLimit=1000))
+
+		return_eval = learner.evaluateOneEpisode(eps=0.01, timestepLimit=1000)
+
+		plt.plot(returns)
+		plt.plot(len(returns) * [return_eval])
+		plt.show()
