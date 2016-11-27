@@ -101,7 +101,7 @@ def discoverOptions(env, epsilon, verbose, discoverNegation, plotGraphs=False):
 
 	#I need to do this after I'm done with the PVFs:
 	env.defineRewardFunction(None)
-	env.resetEnvironment()
+	env.reset()
 
 	return options, actionSetPerOption
 
@@ -198,6 +198,51 @@ def getExpectedNumberOfStepsFromOption(env, eps, verbose,
 	myFormattedList = [ '%.2f' % elem for elem in listToPrint ]
 	print myFormattedList
 
+def qLearningWithOptions(env, alpha, gamma, eps, verbose,
+	useNegation, loadedOptions=None):
+
+	# We first discover all options
+	options = None
+	actionSetPerOption = None
+	actionSet = env.getActionSet()
+
+	if loadedOptions == None:
+		if verbose:
+			options, actionSetPerOption = discoverOptions(env, eps, verbose,
+				useNegation, plotGraphs=True)
+		else:
+			options, actionSetPerOption = discoverOptions(env, eps, verbose,
+				useNegation, plotGraphs=False)
+	else:
+		options = loadedOptions
+		actionSetPerOption = []
+
+		for i in xrange(len(loadedOptions)):
+			tempActionSet = env.getActionSet()
+			tempActionSet.append('terminate')
+			actionSetPerOption.append(tempActionSet)
+
+	# Now I add all options to my action set. Later we decide which ones to use.
+	for i in xrange(len(options)):
+		actionSet.append(options[i])
+
+	if useNegation:
+		numOptions = 2*env.getNumStates()
+	else:
+		numOptions = env.getNumStates()
+
+	returns_eval = []
+	returns_learn = []
+	learner = QLearning(alpha, gamma, eps, env, actionSet, actionSetPerOption)
+
+	for i in xrange(1000):
+		returns_learn.append(learner.learnOneEpisode(timestepLimit=1000))
+		returns_eval.append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=1000))
+
+	plt.plot(returns_learn)
+	plt.plot(returns_eval)
+	plt.show()
+
 if __name__ == "__main__":
 
 	#Read input arguments
@@ -242,13 +287,16 @@ if __name__ == "__main__":
 		getExpectedNumberOfStepsFromOption(env, epsilon, verbose,
 			bothDirections, loadedOptions=loadedOptions)
 	elif taskToPerform == 5:
-		returns = []
-		learner = QLearning(0.9, 0.1, 0.05, env)
+		returns_learn = []
+		returns_eval  = []
+		learner = QLearning(0.1, 0.9, 0.01, env)
 		for i in xrange(1000):
-			returns.append(learner.learnOneEpisode(timestepLimit=1000))
+			returns_learn.append(learner.learnOneEpisode(timestepLimit=1000))
+			returns_eval.append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=1000))
 
-		return_eval = learner.evaluateOneEpisode(eps=0.01, timestepLimit=1000)
-
-		plt.plot(returns)
-		plt.plot(len(returns) * [return_eval])
+		plt.plot(returns_learn)
+		plt.plot(returns_eval)
 		plt.show()
+
+
+	qLearningWithOptions(env, 0.1, 0.9, 0.01, verbose=False, useNegation=False)
