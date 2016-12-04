@@ -204,7 +204,6 @@ def qLearningWithOptions(env, alpha, gamma, eps, verbose,
 	# We first discover all options
 	options = None
 	actionSetPerOption = None
-	actionSet = env.getActionSet()
 
 	if loadedOptions == None:
 		if verbose:
@@ -223,24 +222,66 @@ def qLearningWithOptions(env, alpha, gamma, eps, verbose,
 			actionSetPerOption.append(tempActionSet)
 
 	# Now I add all options to my action set. Later we decide which ones to use.
-	for i in xrange(len(options)):
-		actionSet.append(options[i])
+	aucs = []
+	totalOptionsToUse = [1, 2, 4, 8, 16]
+	#totalOptionsToUse = [1, 2, 4, 8, 16, 32, 64, 128]
+	numSeeds = 5
+	for s in xrange(numSeeds):
+		print 'Seed: ', s + 1
+		aucs.append([])
+		for numOptionsToUse in totalOptionsToUse:
+			print 'Using', numOptionsToUse, 'options'
+			actionSet = env.getActionSet()
+			for i in xrange(numOptionsToUse):
+				actionSet.append(options[i])
 
-	if useNegation:
-		numOptions = 2*env.getNumStates()
-	else:
-		numOptions = env.getNumStates()
+			if useNegation:
+				numOptions = 2*numOptionsToUse
+			else:
+				numOptions = numOptionsToUse
 
-	returns_eval = []
-	returns_learn = []
-	learner = QLearning(alpha, gamma, eps, env, actionSet, actionSetPerOption)
+			returns_eval = []
+			returns_learn = []
+			learner = QLearning(alpha, gamma, eps, env, s, True, actionSet, actionSetPerOption)
 
-	for i in xrange(1000):
-		returns_learn.append(learner.learnOneEpisode(timestepLimit=1000))
-		returns_eval.append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=1000))
+			for i in xrange(1000):
+				returns_learn.append(learner.learnOneEpisode(timestepLimit=1000))
+				returns_eval.append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=1000))
 
-	plt.plot(returns_learn)
-	plt.plot(returns_eval)
+			aucs[s].append(np.average(returns_eval))
+
+	toPlotOptions = []
+	minConfIntervalOptions = []
+	maxConfIntervalOptions = []
+	for i in xrange(len(aucs)):
+		toPlotOptions.append(np.average(aucs[i]))
+		minConfIntervalOptions.append(np.average(aucs[i]) - 1.96 * (np.std(aucs[i])/np.sqrt(numSeeds)))
+		maxConfIntervalOptions.append(np.average(aucs[i]) + 1.96 * (np.std(aucs[i])/np.sqrt(numSeeds)))
+
+	aucs = []
+	for s in xrange(numSeeds):
+		returns_learn = []
+		returns_eval  = []
+		learner = QLearning(alpha, gamma, eps, env, s)
+		for i in xrange(1000):
+			returns_learn.append(learner.learnOneEpisode(timestepLimit=1000))
+			returns_eval.append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=1000))
+
+		aucs.append(np.average(returns_eval))
+
+	toPlotPrimitive = [np.average(aucs)]
+	minConfIntervalPrimitive = [np.average(aucs) - 1.96 * (np.std(aucs)/np.sqrt(numSeeds))]
+	maxConfIntervalPrimitive = [np.average(aucs) + 1.96 * (np.std(aucs)/np.sqrt(numSeeds))]
+
+	plt.plot(toPlotOptions, color='blue')
+	plt.fill_between(xrange(len(toPlotOptions)), minConfIntervalOptions, maxConfIntervalOptions, alpha=0.5, color='blue')
+
+	plt.plot(len(toPlotOptions) * toPlotPrimitive, color='red')
+	plt.fill_between(xrange(len(toPlotOptions)), len(toPlotOptions) * minConfIntervalPrimitive, len(toPlotOptions) * maxConfIntervalPrimitive, alpha=0.5, color='red')
+
+	plt.ylabel('Average area under the learning curve')
+	plt.xlabel('#Options used in behavior policy')
+
 	plt.show()
 
 if __name__ == "__main__":
@@ -289,14 +330,15 @@ if __name__ == "__main__":
 	elif taskToPerform == 5:
 		returns_learn = []
 		returns_eval  = []
-		learner = QLearning(0.1, 0.9, 0.01, env)
+		learner = QLearning(0.1, 0.9, 1.00, env)
 		for i in xrange(1000):
 			returns_learn.append(learner.learnOneEpisode(timestepLimit=1000))
 			returns_eval.append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=1000))
 
-		plt.plot(returns_learn)
+		#plt.plot(returns_learn)
 		plt.plot(returns_eval)
+		print returns_eval
 		plt.show()
 
 
-	qLearningWithOptions(env, 0.1, 0.9, 0.01, verbose=False, useNegation=False)
+	qLearningWithOptions(env, 0.1, 0.9, 1.0, verbose=False, useNegation=False)

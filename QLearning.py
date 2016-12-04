@@ -13,9 +13,10 @@ class QLearning:
 	numActions = 0
 	optionsActionSet = None
 	numPrimitiveActions = -1
+	toLearnUsingOnlyPrimitiveActions = False
 
-	def __init__(self, alpha, gamma, epsilon, environment,
-		actionSet=None, actionSetPerOption=None):
+	def __init__(self, alpha, gamma, epsilon, environment, seed=1,
+		useOnlyPrimActions=False, actionSet=None, actionSetPerOption=None):
 
 		'''Initialize variables that are useful everywhere.'''
 		self.env = environment
@@ -24,6 +25,9 @@ class QLearning:
 		self.epsilon = epsilon
 		self.numStates = self.env.getNumStates()
 		self.numPrimitiveActions = len(self.env.getActionSet())
+		self.toLearnUsingOnlyPrimitiveActions = useOnlyPrimActions
+
+		random.seed(seed)
 
 		if actionSet == None:
 			self.actionSet = self.env.getActionSet()
@@ -31,7 +35,13 @@ class QLearning:
 			self.actionSet = actionSet
 			self.optionsActionSet = actionSetPerOption
 
-		self.numActions = len(self.actionSet)
+		if self.toLearnUsingOnlyPrimitiveActions:
+			if self.epsilon != 1.0:
+				print 'Something will go wrong. Epsilon should be 1.0 when \
+				using the options only for exploration in QLearning.'
+			self.numActions = self.numPrimitiveActions
+		else:
+			self.numActions = len(self.actionSet)
 
 		self.Q = np.zeros((self.numStates, self.numActions))
 
@@ -44,6 +54,13 @@ class QLearning:
 				availActions.append(i)
 
 		return availActions
+
+	def getIdFromPrimitiveActions(self, action):
+		for i in xrange(self.numPrimitiveActions):
+			if self.env.getActionSet()[i] == action:
+				return i
+
+		return 'error'
 
 	def epsilonGreedy(self, F, s, epsilon=None):
 		''' Epsilon-greedy function. F needs to be Q[s], so it
@@ -93,6 +110,9 @@ class QLearning:
 			r = self.env.act(action)
 			cummulativeReward += r
 			sNext = self.env.getCurrentState()
+
+			if self.toLearnUsingOnlyPrimitiveActions:
+				a = self.getIdFromPrimitiveActions(action)
 
 			self.Q[s][a] = self.Q[s][a] + self.alpha * (
 				r + self.gamma * np.max(self.Q[sNext][a]) - self.Q[s][a])
