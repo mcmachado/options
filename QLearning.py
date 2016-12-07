@@ -93,13 +93,12 @@ class QLearning:
 		r = 0
 		timestep = 0
 		previousAction = -1
-		cummulativeReward = 0
+		cumulativeReward = 0
 		s = self.env.getCurrentState()
 
 		while not self.env.isTerminal() and timestep < timestepLimit:
 			if previousAction < self.numPrimitiveActions:
 				a = self.epsilonGreedy(self.Q[s], s)
-
 			action = self.getPrimitiveAction(s, a)
 
 			if action == 'terminate':
@@ -108,19 +107,19 @@ class QLearning:
 
 			previousAction = a
 			r = self.env.act(action)
-			cummulativeReward += r
+			cumulativeReward += r
 			sNext = self.env.getCurrentState()
 
 			if self.toLearnUsingOnlyPrimitiveActions:
 				a = self.getIdFromPrimitiveActions(action)
 
 			self.Q[s][a] = self.Q[s][a] + self.alpha * (
-				r + self.gamma * np.max(self.Q[sNext][a]) - self.Q[s][a])
+				r + self.gamma * np.max(self.Q[sNext]) - self.Q[s][a])
 
 			s = sNext
 			timestep += 1
 
-		return cummulativeReward
+		return cumulativeReward
 
 	def evaluateOneEpisode(self, eps=None, timestepLimit=1000):
 		'''Evaluate Q-learning for one episode.'''
@@ -129,7 +128,7 @@ class QLearning:
 		r = 0
 		timestep = 0
 		previousAction = -1
-		cummulativeReward = 0
+		cumulativeReward = 0
 		s = self.env.getCurrentState()
 
 		while not self.env.isTerminal() and timestep < timestepLimit:
@@ -144,10 +143,10 @@ class QLearning:
 
 			previousAction = a
 			r = self.env.act(action)
-			cummulativeReward += r
+			cumulativeReward += r
 			sNext = self.env.getCurrentState()
 
 			s = sNext
 			timestep += 1
 
-		return cummulativeReward
+		return cumulativeReward
