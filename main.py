@@ -20,13 +20,6 @@ from MDPStats import MDPStats
 
 from QLearning import QLearning
 
-colors = ['b', 'g', 'r', 'c', 'm', 'k', 'y']
-
-def movingaverage(data, n=50) :
-    ret = np.cumsum(data, dtype=float)
-    ret[n:] = ret[n:] - ret[:-n]
-    return ret[n - 1:] / n
-
 def discoverOptions(env, epsilon, verbose, discoverNegation, plotGraphs=False):
 	#I'll need this when computing the expected number of steps:
 	options = []
@@ -285,36 +278,34 @@ def qLearningWithOptions(env, alpha, gamma, options_eps, epsilon,
 			returns_eval_primitive[s].append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=maxLengthEp))
 
 	color_idx = 0
-	average_primitive = np.mean(returns_eval_primitive, axis=0)
-	std_dev_primitive = np.std(returns_eval_primitive, axis=0)
+	average = np.mean(returns_eval_primitive, axis=0)
+	std_dev = np.std(returns_eval_primitive, axis=0)
+	minConfInt, maxConfInt = Utils.computeConfInterval(average, std_dev, numSeeds)
 
-	plt.plot(movingaverage(average_primitive), label='Primitive actions', color=colors[color_idx])
-	plt.fill_between(xrange(len(movingaverage(average_primitive))),
-		movingaverage(average_primitive - 1.96 * (std_dev_primitive/np.sqrt(numSeeds))),
-		movingaverage(average_primitive + 1.96 * (std_dev_primitive/np.sqrt(numSeeds))),
-		alpha=0.5, color=colors[color_idx])
+	plt.plot(Utils.movingAverage(average), label='Prim. act.', color=Utils.colors[color_idx])
+	plt.fill_between(xrange(len(Utils.movingAverage(average))),
+		Utils.movingAverage(minConfInt), Utils.movingAverage(maxConfInt),
+		alpha=0.5, color=Utils.colors[color_idx])
 
 	for idx, numOptionsToUse in enumerate(totalOptionsToUse):
 		color_idx += 1
-		average_options = np.mean(returns_eval[idx], axis=0)
-		std_dev_options = np.std(returns_eval[idx], axis=0)
+		average = np.mean(returns_eval[idx], axis=0)
+		std_dev = np.std(returns_eval[idx], axis=0)
+		minConfInt, maxConfInt = Utils.computeConfInterval(average, std_dev, numSeeds)
 
 		if useNegation:
-			plt.plot(movingaverage(average_options),
-				label='Num options: ' + str(2*numOptionsToUse), color=colors[color_idx])
-			plt.fill_between(xrange(len(movingaverage(average_options))),
-				movingaverage(average_options - 1.96 * (std_dev_options/np.sqrt(numSeeds))),
-				movingaverage(average_options + 1.96 * (std_dev_options/np.sqrt(numSeeds))),
-				alpha=0.5, color=colors[color_idx])
+			plt.plot(Utils.movingAverage(average),
+				label=str(2*numOptionsToUse) + ' opt.', color=Utils.colors[color_idx])
 		else:
-			plt.plot(movingaverage(average_options),
-				label='Num options: ' + str(numOptionsToUse), color=colors[color_idx])
-			plt.fill_between(xrange(len(movingaverage(average_options))),
-				movingaverage(average_options - 1.96 * (std_dev_options/np.sqrt(numSeeds))),
-				movingaverage(average_options + 1.96 * (std_dev_options/np.sqrt(numSeeds))),
-				alpha=0.5, color=colors[color_idx])
+			plt.plot(Utils.movingAverage(average),
+				label=str(numOptionsToUse) + ' opt.', color=Utils.colors[color_idx])
 
-	plt.legend(loc=4)
+		plt.fill_between(xrange(len(Utils.movingAverage(average))),
+			Utils.movingAverage(minConfInt), Utils.movingAverage(maxConfInt),
+			alpha=0.5, color=Utils.colors[color_idx])
+
+	plt.legend(loc='upper left', prop={'size':10}, bbox_to_anchor=(1,1))
+	plt.tight_layout(pad=7)
 	plt.show()
 
 if __name__ == "__main__":
@@ -350,20 +341,24 @@ if __name__ == "__main__":
 			plot = Plotter(outputPath, env)
 			plot.plotPolicy(loadedOptions[i], str(i+1) + '_')
 
-	if taskToPerform == 1:
+	if taskToPerform == 1: #Discover options
 		optionDiscoveryThroughPVFs(env=env, epsilon=epsilon, verbose=verbose,
 			discoverNegation=bothDirections)
-	elif taskToPerform == 2:
+
+	elif taskToPerform == 2: #Solve for a given goal (policy iteration)
 		policyIteration(env)
-	elif taskToPerform == 3:
+
+	elif taskToPerform == 3: #Evaluate random policy (policy evaluation)
 		#TODO: I should allow one to evaluate a loaded policy
 		policyEvaluation(env)
-	elif taskToPerform == 4:
+
+	elif taskToPerform == 4: #Compute the average number of time steps between any two states
 		gamma = 1.0
 		stats = MDPStats(gamma=gamma, env=env, outputPath=outputPath)
 		getExpectedNumberOfStepsFromOption(env=env, eps=epsilon, verbose=verbose,
 			discoverNegation=bothDirections, loadedOptions=loadedOptions)
-	elif taskToPerform == 5:
+
+	elif taskToPerform == 5: #Solve for a given goal (q-learning)
 		returns_learn = []
 		returns_eval  = []
 		learner = QLearning(alpha=0.1, gamma=0.9, epsilon=1.00, environment=env)
@@ -374,7 +369,7 @@ if __name__ == "__main__":
 		plt.plot(returns_eval)
 		plt.show()
 
-	elif taskToPerform == 6:
+	elif taskToPerform == 6: #Solve for a given goal w/ primitive actions (q-learning) following options
 		qLearningWithOptions(env=env, alpha=0.1, gamma=0.9,
 			options_eps=0.0, epsilon=1.0, nSeeds=num_seeds,
 			maxLengthEp=max_length_episode, nEpisodes=num_episodes,

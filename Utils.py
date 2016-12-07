@@ -8,6 +8,8 @@ import argparse
 import numpy as np
 
 class Utils:
+	colors = ['b', 'g', 'r', 'c', 'm', 'k', 'y']
+
 	'''Exponentiate a matrix elementwise. This is useful when you have a
 	   diagonal matrix, because the exponentiation makes sense, it is equivalent
 	   to exponentiating a whole matrix.'''
@@ -67,6 +69,16 @@ class Utils:
 				option.append(matrixMDP[i][j])
 
 		return option
+
+	@staticmethod
+	def movingAverage(data, n=50):
+		ret = np.cumsum(data, dtype=float)
+		ret[n:] = ret[n:] - ret[:-n]
+		return ret[n - 1:] / n
+
+	@staticmethod
+	def computeConfInterval(avg, std_dev, n):
+		return avg - 1.96 * (std_dev/np.sqrt(n)), avg + 1.96 * (std_dev/np.sqrt(n))
 
 class ArgsParser:
 	'''Read the user's input and parse the arguments properly. When returning
