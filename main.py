@@ -20,6 +20,13 @@ from MDPStats import MDPStats
 
 from QLearning import QLearning
 
+colors = ['b', 'g', 'r', 'c', 'm', 'k', 'y']
+
+def movingaverage(data, n=50) :
+    ret = np.cumsum(data, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1:] / n
+
 def discoverOptions(env, epsilon, verbose, discoverNegation, plotGraphs=False):
 	#I'll need this when computing the expected number of steps:
 	options = []
@@ -229,9 +236,10 @@ def qLearningWithOptions(env, alpha, gamma, options_eps, epsilon,
 	returns_learn = []
 	# Now I add all options to my action set. Later we decide which ones to use.
 	i = 0
-	genericNumOptionsToEvaluate = [1, 2, 16, 32, 64, 128, 256]
+	genericNumOptionsToEvaluate = [1, 2, 4, 32, 64, 128, 256]
+	#genericNumOptionsToEvaluate = [2]
 	totalOptionsToUse = []
-	while genericNumOptionsToEvaluate[i] < env.getNumStates():
+	while i < len(genericNumOptionsToEvaluate) and genericNumOptionsToEvaluate[i] <= len(options):
 		totalOptionsToUse.append(genericNumOptionsToEvaluate[i])
 		i += 1
 
@@ -276,45 +284,38 @@ def qLearningWithOptions(env, alpha, gamma, options_eps, epsilon,
 			returns_learn_primitive[s].append(learner.learnOneEpisode(timestepLimit=maxLengthEp))
 			returns_eval_primitive[s].append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=maxLengthEp))
 
+	color_idx = 0
+	average_primitive = np.mean(returns_eval_primitive, axis=0)
+	std_dev_primitive = np.std(returns_eval_primitive, axis=0)
 
-	toPlotPrimitive = np.array(returns_eval_primitive[0])
-	for s in xrange(1, numSeeds):
-		toPlotPrimitive += np.array(returns_eval_primitive[s])
-
-	plt.plot(np.cumsum(toPlotPrimitive/float(numSeeds)), label='Primitive actions')
+	plt.plot(movingaverage(average_primitive), label='Primitive actions', color=colors[color_idx])
+	plt.fill_between(xrange(len(movingaverage(average_primitive))),
+		movingaverage(average_primitive - 1.96 * (std_dev_primitive/np.sqrt(numSeeds))),
+		movingaverage(average_primitive + 1.96 * (std_dev_primitive/np.sqrt(numSeeds))),
+		alpha=0.5, color=colors[color_idx])
 
 	for idx, numOptionsToUse in enumerate(totalOptionsToUse):
-		totalSum = np.array(returns_eval[idx][0])
-		for s in xrange(1, numSeeds):
-			totalSum += np.array(returns_eval[idx][s])
+		color_idx += 1
+		average_options = np.mean(returns_eval[idx], axis=0)
+		std_dev_options = np.std(returns_eval[idx], axis=0)
 
 		if useNegation:
-			plt.plot(np.cumsum(totalSum/float(numSeeds)), label='Num options: ' + str(2*numOptionsToUse))
+			plt.plot(movingaverage(average_options),
+				label='Num options: ' + str(2*numOptionsToUse), color=colors[color_idx])
+			plt.fill_between(xrange(len(movingaverage(average_options))),
+				movingaverage(average_options - 1.96 * (std_dev_options/np.sqrt(numSeeds))),
+				movingaverage(average_options + 1.96 * (std_dev_options/np.sqrt(numSeeds))),
+				alpha=0.5, color=colors[color_idx])
 		else:
-			plt.plot(np.cumsum(totalSum/float(numSeeds)), label='Num options: ' + str(numOptionsToUse))
+			plt.plot(movingaverage(average_options),
+				label='Num options: ' + str(numOptionsToUse), color=colors[color_idx])
+			plt.fill_between(xrange(len(movingaverage(average_options))),
+				movingaverage(average_options - 1.96 * (std_dev_options/np.sqrt(numSeeds))),
+				movingaverage(average_options + 1.96 * (std_dev_options/np.sqrt(numSeeds))),
+				alpha=0.5, color=colors[color_idx])
 
-	plt.legend(loc=2)
+	plt.legend(loc=4)
 	plt.show()
-
-
-	'''
-	aucs = []
-
-	toPlotPrimitive = [np.average(aucs)]
-	minConfIntervalPrimitive = [np.average(aucs) - 1.96 * (np.std(aucs)/np.sqrt(numSeeds))]
-	maxConfIntervalPrimitive = [np.average(aucs) + 1.96 * (np.std(aucs)/np.sqrt(numSeeds))]
-
-	plt.plot(toPlotOptions, color='blue')
-	plt.fill_between(xrange(len(toPlotOptions)), minConfIntervalOptions, maxConfIntervalOptions, alpha=0.5, color='blue')
-
-	plt.plot(len(toPlotOptions) * toPlotPrimitive, color='red')
-	plt.fill_between(xrange(len(toPlotOptions)), len(toPlotOptions) * minConfIntervalPrimitive, len(toPlotOptions) * maxConfIntervalPrimitive, alpha=0.5, color='red')
-
-	plt.ylabel('Average area under the learning curve')
-	plt.xlabel('#Options used in behavior policy')
-
-	plt.show()
-	'''
 
 if __name__ == "__main__":
 
