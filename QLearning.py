@@ -10,7 +10,6 @@ class QLearning:
 	epsilon = 0.05
 	numStates = 0
 	actionSet = None
-	numActions = 0
 	optionsActionSet = None
 	numPrimitiveActions = -1
 	toLearnUsingOnlyPrimitiveActions = False
@@ -39,11 +38,9 @@ class QLearning:
 			if self.epsilon != 1.0:
 				print 'Something will go wrong. Epsilon should be 1.0 when \
 				using the options only for exploration in QLearning.'
-			self.numActions = self.numPrimitiveActions
+			self.Q = np.zeros((self.numStates, self.numPrimitiveActions))
 		else:
-			self.numActions = len(self.actionSet)
-
-		self.Q = np.zeros((self.numStates, self.numActions))
+			self.Q = np.zeros((self.numStates, len(self.actionSet)))
 
 	def getAvailableActionSet(self, s):
 		availActions = []
@@ -71,10 +68,13 @@ class QLearning:
 
 		availActions = self.getAvailableActionSet(s)
 
-		if rnd < epsilon:
+		if rnd <= epsilon:
 			idx = random.randrange(0, len(availActions))
 			return availActions[idx]
 		else:
+			if self.toLearnUsingOnlyPrimitiveActions:
+				availActions = range(len(self.env.getActionSet()))
+
 			T = F[availActions]
 			idx = np.random.choice(np.where(T == T.max())[0])
 			return availActions[idx]

@@ -6,6 +6,7 @@ given a reward function, and plotting options and basis functions.
 Author: Marlos C. Machado
 '''
 import sys
+import math
 import warnings
 import numpy as np
 import matplotlib.pylab as plt
@@ -198,19 +199,22 @@ def getExpectedNumberOfStepsFromOption(env, eps, verbose,
 	myFormattedList = [ '%.2f' % elem for elem in listToPrint ]
 	print myFormattedList
 
-def qLearningWithOptions(env, alpha, gamma, eps, verbose,
-	useNegation, loadedOptions=None):
+def qLearningWithOptions(env, alpha, gamma, options_eps, epsilon,
+	nSeeds, maxLengthEp, nEpisodes, verbose, useNegation,
+	loadedOptions=None):
 
+	numSeeds = nSeeds
+	numEpisodes = nEpisodes
 	# We first discover all options
 	options = None
 	actionSetPerOption = None
 
 	if loadedOptions == None:
 		if verbose:
-			options, actionSetPerOption = discoverOptions(env, eps, verbose,
+			options, actionSetPerOption = discoverOptions(env, options_eps, verbose,
 				useNegation, plotGraphs=True)
 		else:
-			options, actionSetPerOption = discoverOptions(env, eps, verbose,
+			options, actionSetPerOption = discoverOptions(env, options_eps, verbose,
 				useNegation, plotGraphs=False)
 	else:
 		options = loadedOptions
@@ -221,17 +225,31 @@ def qLearningWithOptions(env, alpha, gamma, eps, verbose,
 			tempActionSet.append('terminate')
 			actionSetPerOption.append(tempActionSet)
 
+	returns_eval = []
+	returns_learn = []
 	# Now I add all options to my action set. Later we decide which ones to use.
-	aucs = []
-	totalOptionsToUse = [1, 2, 4, 8, 16]
-	#totalOptionsToUse = [1, 2, 4, 8, 16, 32, 64, 128]
-	numSeeds = 5
-	for s in xrange(numSeeds):
-		print 'Seed: ', s + 1
-		aucs.append([])
-		for numOptionsToUse in totalOptionsToUse:
+	i = 0
+	genericNumOptionsToEvaluate = [1, 2, 16, 32, 64, 128, 256]
+	totalOptionsToUse = []
+	while genericNumOptionsToEvaluate[i] < env.getNumStates():
+		totalOptionsToUse.append(genericNumOptionsToEvaluate[i])
+		i += 1
+
+	for idx, numOptionsToUse in enumerate(totalOptionsToUse):
+		returns_eval.append([])
+		returns_learn.append([])
+
+		if verbose:
 			print 'Using', numOptionsToUse, 'options'
+
+		for s in xrange(numSeeds):
+			if verbose:
+				print 'Seed: ', s + 1
+
+			returns_eval[idx].append([])
+			returns_learn[idx].append([])
 			actionSet = env.getActionSet()
+
 			for i in xrange(numOptionsToUse):
 				actionSet.append(options[i])
 
@@ -240,34 +258,47 @@ def qLearningWithOptions(env, alpha, gamma, eps, verbose,
 			else:
 				numOptions = numOptionsToUse
 
-			returns_eval = []
-			returns_learn = []
-			learner = QLearning(alpha, gamma, eps, env, s, True, actionSet, actionSetPerOption)
+			learner = QLearning(alpha=alpha, gamma=gamma, epsilon=epsilon,
+				environment=env, seed=s, useOnlyPrimActions=True,
+				actionSet=actionSet, actionSetPerOption=actionSetPerOption)
 
-			for i in xrange(1000):
-				returns_learn.append(learner.learnOneEpisode(timestepLimit=1000))
-				returns_eval.append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=1000))
+			for i in xrange(numEpisodes):
+				returns_learn[idx][s].append(learner.learnOneEpisode(timestepLimit=maxLengthEp))
+				returns_eval[idx][s].append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=maxLengthEp))
 
-			aucs[s].append(np.average(returns_eval))
-
-	toPlotOptions = []
-	minConfIntervalOptions = []
-	maxConfIntervalOptions = []
-	for i in xrange(len(aucs)):
-		toPlotOptions.append(np.average(aucs[i]))
-		minConfIntervalOptions.append(np.average(aucs[i]) - 1.96 * (np.std(aucs[i])/np.sqrt(numSeeds)))
-		maxConfIntervalOptions.append(np.average(aucs[i]) + 1.96 * (np.std(aucs[i])/np.sqrt(numSeeds)))
-
-	aucs = []
+	returns_learn_primitive = []
+	returns_eval_primitive  = []
 	for s in xrange(numSeeds):
-		returns_learn = []
-		returns_eval  = []
-		learner = QLearning(alpha, gamma, eps, env, s)
-		for i in xrange(1000):
-			returns_learn.append(learner.learnOneEpisode(timestepLimit=1000))
-			returns_eval.append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=1000))
+		returns_learn_primitive.append([])
+		returns_eval_primitive.append([])
+		learner = QLearning(alpha=alpha, gamma=gamma, epsilon=epsilon, environment=env, seed=s)
+		for i in xrange(numEpisodes):
+			returns_learn_primitive[s].append(learner.learnOneEpisode(timestepLimit=maxLengthEp))
+			returns_eval_primitive[s].append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=maxLengthEp))
 
-		aucs.append(np.average(returns_eval))
+
+	toPlotPrimitive = np.array(returns_eval_primitive[0])
+	for s in xrange(1, numSeeds):
+		toPlotPrimitive += np.array(returns_eval_primitive[s])
+
+	plt.plot(np.cumsum(toPlotPrimitive/float(numSeeds)), label='Primitive actions')
+
+	for idx, numOptionsToUse in enumerate(totalOptionsToUse):
+		totalSum = np.array(returns_eval[idx][0])
+		for s in xrange(1, numSeeds):
+			totalSum += np.array(returns_eval[idx][s])
+
+		if useNegation:
+			plt.plot(np.cumsum(totalSum/float(numSeeds)), label='Num options: ' + str(2*numOptionsToUse))
+		else:
+			plt.plot(np.cumsum(totalSum/float(numSeeds)), label='Num options: ' + str(numOptionsToUse))
+
+	plt.legend(loc=2)
+	plt.show()
+
+
+	'''
+	aucs = []
 
 	toPlotPrimitive = [np.average(aucs)]
 	minConfIntervalPrimitive = [np.average(aucs) - 1.96 * (np.std(aucs)/np.sqrt(numSeeds))]
@@ -283,6 +314,7 @@ def qLearningWithOptions(env, alpha, gamma, eps, verbose,
 	plt.xlabel('#Options used in behavior policy')
 
 	plt.show()
+	'''
 
 if __name__ == "__main__":
 
@@ -296,12 +328,15 @@ if __name__ == "__main__":
 	outputPath = args.output
 	optionsToLoad = args.load
 	bothDirections = args.both
+	num_seeds = args.num_seeds
+	max_length_episode = args.max_length_ep
+	num_episodes = args.num_episodes
 
 	if not verbose:
 		warnings.filterwarnings('ignore')
 
 	# Create environment
-	env = GridWorld(path = inputMDP)
+	env = GridWorld(path = inputMDP, useNegativeRewards=False)
 	numStates = env.getNumStates()
 	numRows, numCols = env.getGridDimensions()
 
@@ -315,7 +350,7 @@ if __name__ == "__main__":
 			plot.plotPolicy(loadedOptions[i], str(i+1) + '_')
 
 	if taskToPerform == 1:
-		optionDiscoveryThroughPVFs(env, epsilon=epsilon, verbose=verbose,
+		optionDiscoveryThroughPVFs(env=env, epsilon=epsilon, verbose=verbose,
 			discoverNegation=bothDirections)
 	elif taskToPerform == 2:
 		policyIteration(env)
@@ -324,21 +359,22 @@ if __name__ == "__main__":
 		policyEvaluation(env)
 	elif taskToPerform == 4:
 		gamma = 1.0
-		stats = MDPStats(gamma, env, outputPath)
-		getExpectedNumberOfStepsFromOption(env, epsilon, verbose,
-			bothDirections, loadedOptions=loadedOptions)
+		stats = MDPStats(gamma=gamma, env=env, outputPath=outputPath)
+		getExpectedNumberOfStepsFromOption(env=env, eps=epsilon, verbose=verbose,
+			discoverNegation=bothDirections, loadedOptions=loadedOptions)
 	elif taskToPerform == 5:
 		returns_learn = []
 		returns_eval  = []
-		learner = QLearning(0.1, 0.9, 1.00, env)
-		for i in xrange(1000):
-			returns_learn.append(learner.learnOneEpisode(timestepLimit=1000))
-			returns_eval.append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=1000))
+		learner = QLearning(alpha=0.1, gamma=0.9, epsilon=1.00, environment=env)
+		for i in xrange(num_episodes):
+			returns_learn.append(learner.learnOneEpisode(timestepLimit=max_length_episode))
+			returns_eval.append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=max_length_episode))
 
-		#plt.plot(returns_learn)
 		plt.plot(returns_eval)
-		print returns_eval
 		plt.show()
 
-
-	qLearningWithOptions(env, 0.1, 0.9, 1.0, verbose=False, useNegation=False)
+	elif taskToPerform == 6:
+		qLearningWithOptions(env=env, alpha=0.1, gamma=0.9,
+			options_eps=0.0, epsilon=1.0, nSeeds=num_seeds,
+			maxLengthEp=max_length_episode, nEpisodes=num_episodes,
+			verbose=False, useNegation=False, loadedOptions=loadedOptions)

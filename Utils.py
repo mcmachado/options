@@ -79,33 +79,43 @@ class ArgsParser:
 			description='Obtain proto-value functions, options, graphs, etc.')
 
 		parser.add_argument('-t', '--task', type = int, default = 1,
-			help='Task to be performed. ' +
+			help='Task to be performed (default: 1). ' +
 			'1: Discover options; ' +
 			'2: Solve for a given goal (policy iteration); ' +
 			'3: Evaluate random policy (policy evaluation); ' +
 			'4: Compute the average number of time steps between any two states;' +
-			'5: Solve for a given goal (q-learning).')
+			'5: Solve for a given goal (q-learning);' +
+			'6: Solve for a given goal w/ primitive actions (q-learning) following options.')
 
 		parser.add_argument('-i', '--input', type = str, default = 'mdps/toy.mdp',
-			help='File containing the MDP definition.')
+			help='File containing the MDP definition (default: mdps/toy.mdp).')
 
-		parser.add_argument('-o', '--output', type = str, default = 'graphs/toy_',
-			help='Prefix that will be used to generate all outputs.')
+		parser.add_argument('-o', '--output', type = str, default = 'graphs/',
+			help='Prefix that will be used to generate all outputs (default: graphs/).')
 
 		parser.add_argument('-l', '--load', type = str, nargs = '+', default = None,
-			help='List of files that contain the options to be loaded.')
+			help='List of files that contain the options to be loaded (default: None).')
 
 		parser.add_argument('-e', '--epsilon', type = float, default = 0,
-			help='Epsilon threshold to define options\' termination condition.')
+			help='Epsilon threshold to define options\' termination condition (default: 0).')
 
 		parser.add_argument('-b', '--both', action='store_true', default = False,
 			help='When discovering options, we should use both directions of ' +
-			'the eigenvectors (positive and negative).')
+			'the eigenvectors (positive and negative) (default: False).')
 
 		parser.add_argument('-v', '--verbose', action='store_true', default=False,
 			help='Verbose output. If not set, intermediate printing information' +
 			' is suppressed. When using this option with -v=4, no graphs are ' +
-			' plotted.')
+			' plotted (default: False).')
+
+		parser.add_argument('-s', '--num_seeds', type = int, default = 5,
+			help='Number of seeds to be averaged over when appropriate (default: 5).')
+
+		parser.add_argument('-m', '--max_length_ep', type = int, default = 100,
+			help='Maximum number of time steps an episode may last (default: 100).')
+
+		parser.add_argument('-n', '--num_episodes', type = int, default = 1000,
+			help='Number of episodes in which learning will happen (default: 1000).')
 
 		args = parser.parse_args()
 

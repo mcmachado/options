@@ -23,6 +23,7 @@ class GridWorld:
 	matrixMDP = None
 	adjMatrix = None
 	rewardFunction = None
+	useNegativeRewards = False
 
 	currX = 0
 	currY = 0
@@ -31,7 +32,7 @@ class GridWorld:
 	goalX = 0
 	goalY = 0
 
-	def __init__(self, path=None, strin=None):
+	def __init__(self, path=None, strin=None, useNegativeRewards=False):
 		'''Return a GridWorld object that instantiates the MDP defined in a file
 		(specified in path). In case it is None, then the MDP definition is read
 		from strin, which is a string with the content that path would hold. The
@@ -51,6 +52,7 @@ class GridWorld:
 		self.currX = self.startX
 		self.currY = self.startY
 		self.numStates = self.numRows * self.numCols
+		self.useNegativeRewards = useNegativeRewards
 
 	def _readFile(self, path):
 		''' We just read the file and put its contents in strMDP.'''
@@ -164,12 +166,17 @@ class GridWorld:
 		# If a reward vector was not informed we get -1 everywhere until
 		# termination. After termination this function is not called anymore,
 		# thus we can just return 0 elsewhere in the code.
-		if self.rewardFunction == None:
+		if self.rewardFunction == None and self.useNegativeRewards:
 			if self.matrixMDP[nextX][nextY] == -1 \
 				or self._getStateIndex(nextX, nextY) == self.numStates:
 				return 0
 			else:
 				return -1
+		elif self.rewardFunction == None and not self.useNegativeRewards:
+			if nextX == self.goalX and nextY == self.goalY:
+				return 1
+			else:
+				return 0
 
 		# I first look at the state I am in
 		currStateIdx = self._getStateIndex(currX, currY)
@@ -321,9 +328,13 @@ class GridWorld:
 		# I need these contour cases for the termination:
 		if currState == goalIdx:
 			nextStateIdx = self.numStates
-		elif nextAction == aTerminate and \
+		elif self.useNegativeRewards and nextAction == aTerminate and \
 			self.matrixMDP[self.currX][self.currY] != -1:
 			accum_reward = -1
+		elif not self.useNegativeRewards and nextAction == aTerminate and \
+			self.matrixMDP[self.currX][self.currY] != -1:
+			accum_reward = 0
+
 
 		while nextAction != aTerminate:
 			nextAction = o_pi[currState]
@@ -339,7 +350,7 @@ class GridWorld:
 					reward = self._getNextReward(
 						self.currX, self.currY, nextAction, nextX, nextY)
 					nextStateIdx = self._getStateIndex(nextX, nextY)
-				else:
+				else: # We reached an absorbing state
 					reward = 0
 					nextStateIdx = self.numStates
 
