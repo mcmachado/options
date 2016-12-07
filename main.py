@@ -230,9 +230,13 @@ def qLearningWithOptions(env, alpha, gamma, options_eps, epsilon,
 	# Now I add all options to my action set. Later we decide which ones to use.
 	i = 0
 	genericNumOptionsToEvaluate = [1, 2, 4, 32, 64, 128, 256]
-	#genericNumOptionsToEvaluate = [2]
 	totalOptionsToUse = []
-	while i < len(genericNumOptionsToEvaluate) and genericNumOptionsToEvaluate[i] <= len(options):
+	maxNumOptions = 0
+	if useNegation:
+		maxNumOptions = int(len(options)/2)
+	else:
+		maxNumOptions = len(options)
+	while i < len(genericNumOptionsToEvaluate) and genericNumOptionsToEvaluate[i] <= maxNumOptions:
 		totalOptionsToUse.append(genericNumOptionsToEvaluate[i])
 		i += 1
 
@@ -295,7 +299,7 @@ def qLearningWithOptions(env, alpha, gamma, options_eps, epsilon,
 
 		if useNegation:
 			plt.plot(Utils.movingAverage(average),
-				label=str(2*numOptionsToUse) + ' opt.', color=Utils.colors[color_idx])
+				label=str(2 * numOptionsToUse) + ' opt.', color=Utils.colors[color_idx])
 		else:
 			plt.plot(Utils.movingAverage(average),
 				label=str(numOptionsToUse) + ' opt.', color=Utils.colors[color_idx])
@@ -373,4 +377,4 @@ if __name__ == "__main__":
 		qLearningWithOptions(env=env, alpha=0.1, gamma=0.9,
 			options_eps=0.0, epsilon=1.0, nSeeds=num_seeds,
 			maxLengthEp=max_length_episode, nEpisodes=num_episodes,
-			verbose=False, useNegation=False, loadedOptions=loadedOptions)
+			verbose=False, useNegation=bothDirections, loadedOptions=loadedOptions)
