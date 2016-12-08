@@ -97,7 +97,10 @@ class ArgsParser:
 			'3: Evaluate random policy (policy evaluation); ' +
 			'4: Compute the average number of time steps between any two states;' +
 			'5: Solve for a given goal (q-learning);' +
-			'6: Solve for a given goal w/ primitive actions (q-learning) following options.')
+			'6: Solve for a given goal w/ primitive actions (q-learning)' +
+			' following options;' +
+			'7: Solve for a given goal w/ primitive actions (q-learning)' +
+			' following discovered AND loaded options This one is for comparison.')
 
 		parser.add_argument('-i', '--input', type = str, default = 'mdps/toy.mdp',
 			help='File containing the MDP definition (default: mdps/toy.mdp).')

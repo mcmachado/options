@@ -201,7 +201,7 @@ def getExpectedNumberOfStepsFromOption(env, eps, verbose,
 
 def qLearningWithOptions(env, alpha, gamma, options_eps, epsilon,
 	nSeeds, maxLengthEp, nEpisodes, verbose, useNegation,
-	loadedOptions=None):
+	genericNumOptionsToEvaluate, loadedOptions=None):
 
 	numSeeds = nSeeds
 	numEpisodes = nEpisodes
@@ -229,10 +229,10 @@ def qLearningWithOptions(env, alpha, gamma, options_eps, epsilon,
 	returns_learn = []
 	# Now I add all options to my action set. Later we decide which ones to use.
 	i = 0
-	genericNumOptionsToEvaluate = [1, 2, 4, 32, 64, 128, 256]
+	#genericNumOptionsToEvaluate = [1, 2, 4, 32, 64, 128, 256]
 	totalOptionsToUse = []
 	maxNumOptions = 0
-	if useNegation:
+	if useNegation and loadedOptions == None:
 		maxNumOptions = int(len(options)/2)
 	else:
 		maxNumOptions = len(options)
@@ -258,7 +258,7 @@ def qLearningWithOptions(env, alpha, gamma, options_eps, epsilon,
 			for i in xrange(numOptionsToUse):
 				actionSet.append(options[i])
 
-			if useNegation:
+			if useNegation and loadedOptions == None:
 				numOptions = 2*numOptionsToUse
 			else:
 				numOptions = numOptionsToUse
@@ -281,36 +281,8 @@ def qLearningWithOptions(env, alpha, gamma, options_eps, epsilon,
 			returns_learn_primitive[s].append(learner.learnOneEpisode(timestepLimit=maxLengthEp))
 			returns_eval_primitive[s].append(learner.evaluateOneEpisode(eps=0.01, timestepLimit=maxLengthEp))
 
-	color_idx = 0
-	average = np.mean(returns_eval_primitive, axis=0)
-	std_dev = np.std(returns_eval_primitive, axis=0)
-	minConfInt, maxConfInt = Utils.computeConfInterval(average, std_dev, numSeeds)
 
-	plt.plot(Utils.movingAverage(average), label='Prim. act.', color=Utils.colors[color_idx])
-	plt.fill_between(xrange(len(Utils.movingAverage(average))),
-		Utils.movingAverage(minConfInt), Utils.movingAverage(maxConfInt),
-		alpha=0.5, color=Utils.colors[color_idx])
-
-	for idx, numOptionsToUse in enumerate(totalOptionsToUse):
-		color_idx += 1
-		average = np.mean(returns_eval[idx], axis=0)
-		std_dev = np.std(returns_eval[idx], axis=0)
-		minConfInt, maxConfInt = Utils.computeConfInterval(average, std_dev, numSeeds)
-
-		if useNegation:
-			plt.plot(Utils.movingAverage(average),
-				label=str(2 * numOptionsToUse) + ' opt.', color=Utils.colors[color_idx])
-		else:
-			plt.plot(Utils.movingAverage(average),
-				label=str(numOptionsToUse) + ' opt.', color=Utils.colors[color_idx])
-
-		plt.fill_between(xrange(len(Utils.movingAverage(average))),
-			Utils.movingAverage(minConfInt), Utils.movingAverage(maxConfInt),
-			alpha=0.5, color=Utils.colors[color_idx])
-
-	plt.legend(loc='upper left', prop={'size':10}, bbox_to_anchor=(1,1))
-	plt.tight_layout(pad=7)
-	plt.show()
+	return returns_eval_primitive, returns_eval, totalOptionsToUse
 
 if __name__ == "__main__":
 
@@ -374,7 +346,101 @@ if __name__ == "__main__":
 		plt.show()
 
 	elif taskToPerform == 6: #Solve for a given goal w/ primitive actions (q-learning) following options
-		qLearningWithOptions(env=env, alpha=0.1, gamma=0.9,
-			options_eps=0.0, epsilon=1.0, nSeeds=num_seeds,
+		returns_eval_primitive, returns_eval, totalOptionsToUse = qLearningWithOptions(
+			env=env, alpha=0.1, gamma=0.9, options_eps=0.0, epsilon=1.0, nSeeds=num_seeds,
 			maxLengthEp=max_length_episode, nEpisodes=num_episodes,
-			verbose=False, useNegation=bothDirections, loadedOptions=loadedOptions)
+			verbose=False, useNegation=bothDirections,
+			genericNumOptionsToEvaluate = [1, 2, 4, 32, 64, 128, 256],
+			loadedOptions=loadedOptions)
+
+		color_idx = 0
+		average = np.mean(returns_eval_primitive, axis=0)
+		std_dev = np.std(returns_eval_primitive, axis=0)
+		minConfInt, maxConfInt = Utils.computeConfInterval(average, std_dev, num_seeds)
+
+		plt.plot(Utils.movingAverage(average), label='Prim. act.', color=Utils.colors[color_idx])
+		plt.fill_between(xrange(len(Utils.movingAverage(average))),
+			Utils.movingAverage(minConfInt), Utils.movingAverage(maxConfInt),
+			alpha=0.5, color=Utils.colors[color_idx])
+
+		for idx, numOptionsToUse in enumerate(totalOptionsToUse):
+			color_idx += 1
+			average = np.mean(returns_eval[idx], axis=0)
+			std_dev = np.std(returns_eval[idx], axis=0)
+			minConfInt, maxConfInt = Utils.computeConfInterval(average, std_dev, num_seeds)
+
+			if bothDirections:
+				plt.plot(Utils.movingAverage(average),
+					label=str(2 * numOptionsToUse) + ' opt.', color=Utils.colors[color_idx])
+			else:
+				plt.plot(Utils.movingAverage(average),
+					label=str(numOptionsToUse) + ' opt.', color=Utils.colors[color_idx])
+
+			plt.fill_between(xrange(len(Utils.movingAverage(average))),
+				Utils.movingAverage(minConfInt), Utils.movingAverage(maxConfInt),
+				alpha=0.5, color=Utils.colors[color_idx])
+
+		plt.legend(loc='upper left', prop={'size':10}, bbox_to_anchor=(1,1))
+		plt.tight_layout(pad=7)
+		plt.show()
+
+	elif taskToPerform == 7: #Solve for a given goal w/ primitive actions (q-learning)
+						     #following discovered AND loaded options This one is for comparison.
+		numOptionsLoadedToConsider = 4
+		numOptionsDiscoveredToConsider = 32
+
+		returnsEvalPrimitive1, returnsEvalDiscovered, totalOptionsToUseDiscovered = qLearningWithOptions(
+			env=env, alpha=0.1, gamma=0.9, options_eps=0.0, epsilon=1.0, nSeeds=num_seeds,
+			maxLengthEp=max_length_episode, nEpisodes=num_episodes,
+			verbose=False, useNegation=bothDirections,
+			genericNumOptionsToEvaluate = [numOptionsDiscoveredToConsider],
+			loadedOptions=None)
+
+		returnsEvalPrimitive2, returnsEvalLoaded, totalOptionsToUseLoaded = qLearningWithOptions(
+			env=env, alpha=0.1, gamma=0.9, options_eps=0.0, epsilon=1.0, nSeeds=num_seeds,
+			maxLengthEp=max_length_episode, nEpisodes=num_episodes,
+			verbose=False, useNegation=bothDirections,
+			genericNumOptionsToEvaluate = [numOptionsLoadedToConsider],
+			loadedOptions=loadedOptions)
+
+		color_idx = 0
+		average = np.mean(returnsEvalPrimitive1, axis=0)
+		std_dev = np.std(returnsEvalPrimitive1, axis=0)
+		minConfInt, maxConfInt = Utils.computeConfInterval(average, std_dev, num_seeds)
+
+		plt.plot(Utils.movingAverage(average), label='Prim. act.', color=Utils.colors[color_idx])
+		plt.fill_between(xrange(len(Utils.movingAverage(average))),
+			Utils.movingAverage(minConfInt), Utils.movingAverage(maxConfInt),
+			alpha=0.5, color=Utils.colors[color_idx])
+
+		color_idx += 1
+		for idx, numOptionsToUse in enumerate(totalOptionsToUseDiscovered):
+			if numOptionsToUse == numOptionsDiscoveredToConsider:
+				average = np.mean(returnsEvalDiscovered[idx], axis=0)
+				std_dev = np.std(returnsEvalDiscovered[idx], axis=0)
+				minConfInt, maxConfInt = Utils.computeConfInterval(average, std_dev, num_seeds)
+
+				plt.plot(Utils.movingAverage(average),
+					label=str(numOptionsToUse) + ' opt. disc.', color=Utils.colors[color_idx])
+
+				plt.fill_between(xrange(len(Utils.movingAverage(average))),
+					Utils.movingAverage(minConfInt), Utils.movingAverage(maxConfInt),
+					alpha=0.5, color=Utils.colors[color_idx])
+
+		color_idx += 1
+		for idx, numOptionsToUse in enumerate(totalOptionsToUseLoaded):
+			if numOptionsToUse == numOptionsLoadedToConsider:
+				average = np.mean(returnsEvalLoaded[idx], axis=0)
+				std_dev = np.std(returnsEvalLoaded[idx], axis=0)
+				minConfInt, maxConfInt = Utils.computeConfInterval(average, std_dev, num_seeds)
+
+				plt.plot(Utils.movingAverage(average),
+					label=str(numOptionsToUse) + ' opt. loaded', color=Utils.colors[color_idx])
+
+				plt.fill_between(xrange(len(Utils.movingAverage(average))),
+					Utils.movingAverage(minConfInt), Utils.movingAverage(maxConfInt),
+					alpha=0.5, color=Utils.colors[color_idx])
+
+		plt.legend(loc='upper left', prop={'size':9}, bbox_to_anchor=(1,1))
+		plt.tight_layout(pad=7)
+		plt.show()
