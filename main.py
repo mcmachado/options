@@ -145,6 +145,18 @@ def optionDiscoveryThroughPVFs(env, epsilon, verbose, discoverNegation):
 		epsilon=epsilon, verbose=verbose,
 		discoverNegation=discoverNegation, plotGraphs=True)
 
+	# I convert the np.array of options into a list and print it.
+	# This is useful if one wants to use this data in a different script.
+	if verbose:
+		print
+		print 'Information about discovered options:'
+		for i in xrange(len(options)):
+			options[i] = options[i].tolist()
+		print 'numRows = ', env.getGridDimensions()[0]
+		print 'numCols = ', env.getGridDimensions()[1]
+		print 'env = ', env.matrixMDP.flatten().tolist()
+		print 'options = ', options
+
 def getExpectedNumberOfStepsFromOption(env, eps, verbose,
 	discoverNegation, loadedOptions=None):
 
@@ -172,10 +184,13 @@ def getExpectedNumberOfStepsFromOption(env, eps, verbose,
 	for i in xrange(len(options)):
 		actionSet.append(options[i])
 
-	if discoverNegation:
-		numOptions = 2*env.getNumStates()
+	if loadedOptions == None:
+		if discoverNegation:
+			numOptions = 2*env.getNumStates()
+		else:
+			numOptions = env.getNumStates()
 	else:
-		numOptions = env.getNumStates()
+		numOptions = len(loadedOptions)
 
 	if discoverNegation:
 		for i in xrange(numOptions/2):
@@ -192,7 +207,6 @@ def getExpectedNumberOfStepsFromOption(env, eps, verbose,
 			myFormattedList = [ '%.2f' % elem for elem in listToPrint ]
 			print 'Random, Option ' + str(i + 1) + ': ' + str(myFormattedList)
 
-	print 'Average number of steps between any two states as we add options:'
 	listToPrint = stats.getAvgNumStepsBetweenEveryPoint(actionSet,
 		actionSetPerOption, verbose, initOption=0,
 		numOptionsToConsider=numOptions)
