@@ -330,6 +330,7 @@ if __name__ == "__main__":
 
 	elif taskToPerform == 4: #Compute the average number of time steps between any two states
 		gamma = 1.0
+		env.useNegativeRewards = True #I need this because I'm counting time steps
 		stats = MDPStats(gamma=gamma, env=env, outputPath=outputPath)
 		getExpectedNumberOfStepsFromOption(env=env, eps=epsilon, verbose=verbose,
 			discoverNegation=bothDirections, loadedOptions=loadedOptions)
@@ -387,7 +388,7 @@ if __name__ == "__main__":
 	elif taskToPerform == 7: #Solve for a given goal w/ primitive actions (q-learning)
 						     #following discovered AND loaded options This one is for comparison.
 		numOptionsLoadedToConsider = 4
-		numOptionsDiscoveredToConsider = 32
+		numOptionsDiscoveredToConsider = 128
 
 		returnsEvalPrimitive1, returnsEvalDiscovered, totalOptionsToUseDiscovered = qLearningWithOptions(
 			env=env, alpha=0.1, gamma=0.9, options_eps=0.0, epsilon=1.0, nSeeds=num_seeds,

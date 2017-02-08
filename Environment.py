@@ -385,5 +385,5 @@ class GridWorld:
 		else:
 			self.goalX = x
 			self.goalY = y
-			self.resetEnvironment()
+			self.reset()
 			return True
